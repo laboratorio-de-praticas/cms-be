@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "formidable": "^3.5.2",
+    "multer": "^1.4.5-lts.2",
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
