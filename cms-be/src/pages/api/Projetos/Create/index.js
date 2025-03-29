@@ -22,6 +22,53 @@ export default async function handler(req, res) {
       area_tematica_ids
     } = req.body;
 
+    // Validações básicas
+    if (!nome_Projeto?.trim()) {
+      return res.status(400).json({ erro: 'Nome do projeto é obrigatório' });
+    }
+
+    if (!nome_equipe?.trim()) {
+      return res.status(400).json({ erro: 'Nome da equipe é obrigatório' });
+    }
+
+    if (!descricao?.trim()) {
+      return res.status(400).json({ erro: 'Descrição é obrigatória' });
+    }
+
+    // Verifica se o projeto já existe (case insensitive)
+    const projeto_existente = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT id FROM Projetos WHERE UPPER(nome_Projeto) = UPPER(?)',
+        [nome_Projeto],
+        (err, row) => {
+          if (err) reject(err);
+          resolve(row);
+        }
+      );
+    });
+
+    if (projeto_existente) {
+      return res.status(400).json({ erro: 'Já existe um projeto com este nome' });
+    }
+
+    // Validação dos IDs de ODS
+    if (ods_ids) {
+      const ods_validos = await new Promise((resolve, reject) => {
+        db.get(
+          'SELECT COUNT(*) as count FROM ODS WHERE id IN (' + ods_ids.join(',') + ')',
+          [],
+          (err, row) => {
+            if (err) reject(err);
+            resolve(row.count === ods_ids.length);
+          }
+        );
+      });
+
+      if (!ods_validos) {
+        return res.status(400).json({ erro: 'Um ou mais ODS selecionados são inválidos' });
+      }
+    }
+
     // Inicia a transação
     db.run("BEGIN TRANSACTION");
 
