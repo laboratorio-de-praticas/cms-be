@@ -21,10 +21,13 @@ export default async function handler(req, res) {
   try {
     // Criar diretório se não existir
     await fs.mkdir(path.join(process.cwd(), 'public/imgs/projetos'), { recursive: true });
+    await fs.mkdir(path.join(process.cwd(), 'public/imgs/projetos/capas'), { recursive: true });
+    await fs.mkdir(path.join(process.cwd(), 'public/imgs/projetos/Imagens_Projeto'), { recursive: true });
 
     const form = new IncomingForm({
       uploadDir: path.join(process.cwd(), 'public/imgs/projetos'),
       keepExtensions: true,
+      multiples: true, // Permitir múltiplos arquivos
     });
 
     // Parse do form-data
@@ -56,7 +59,7 @@ export default async function handler(req, res) {
     // Conectar ao banco de dados
     db = conectar_banco();
 
-    // Processar imagem
+    // Processar imagem de capa
     let nome_arquivo = '';
     if (files.imagem_capa) {
       const arquivo = Array.isArray(files.imagem_capa) 
@@ -88,6 +91,45 @@ export default async function handler(req, res) {
       // Mover arquivo para localização final
       const caminho_final = path.join(process.cwd(), 'public/imgs/projetos/capas', nome_arquivo);
       await fs.rename(arquivo.filepath, caminho_final);
+    }
+
+    // Processar múltiplas imagens do projeto
+    const imagens_projeto = [];
+    if (files.imagens_projeto) {
+      const arquivos = Array.isArray(files.imagens_projeto) 
+        ? files.imagens_projeto 
+        : [files.imagens_projeto];
+      
+      for (const arquivo of arquivos) {
+        // Gerar hash para o nome do arquivo
+        const hash = crypto.createHash('md5')
+          .update(Date.now().toString() + Math.random().toString())
+          .digest('hex');
+
+        const extensao = path.extname(arquivo.originalFilename);
+        const nome_imagem = `${hash}${extensao}`;
+        
+        // Validar tipo de arquivo
+        const tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!tipos_permitidos.includes(arquivo.mimetype)) {
+          await fs.unlink(arquivo.filepath);
+          continue; // Pula este arquivo e continua com os próximos
+        }
+
+        // Validar tamanho do arquivo (máximo 5MB)
+        const tamanho_maximo = 5 * 1024 * 1024; // 5MB
+        if (arquivo.size > tamanho_maximo) {
+          await fs.unlink(arquivo.filepath);
+          continue; // Pula este arquivo e continua com os próximos
+        }
+
+        // Mover arquivo para localização final
+        const caminho_final = path.join(process.cwd(), 'public/imgs/projetos/Imagens_Projeto', nome_imagem);
+        await fs.rename(arquivo.filepath, caminho_final);
+        
+        // Adicionar o nome da imagem à lista
+        imagens_projeto.push(nome_imagem);
+      }
     }
 
     // Validações básicas
@@ -223,6 +265,19 @@ export default async function handler(req, res) {
           db.run(
             `INSERT INTO IntegrantesEquipe (projeto_id, nome_integrante) VALUES (?, ?)`,
             [projeto_id, nome_integrante],
+            (err) => err ? reject(err) : resolve()
+          );
+        });
+      }
+    }
+
+    // Insere as imagens do projeto
+    if (imagens_projeto && imagens_projeto.length > 0) {
+      for (const imagem_url of imagens_projeto) {
+        await new Promise((resolve, reject) => {
+          db.run(
+            `INSERT INTO ImagensProjeto (projeto_id, imagem_url) VALUES (?, ?)`,
+            [projeto_id, imagem_url],
             (err) => err ? reject(err) : resolve()
           );
         });
