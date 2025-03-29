@@ -6,7 +6,19 @@ const fs = require('fs');
 // Configuração do Multer
 const upload = multer({
   storage: multer.diskStorage({
-    destination: './public/uploads/',
+    destination: function (req, file, cb) {
+      // Define o destino baseado no campo do arquivo
+      const pasta = file.fieldname === 'imagem_capa' ? 
+        './public/imgs/projetos/capas' : 
+        './public/imgs/projetos/Imagens_Projeto';
+      
+      // Cria o diretório se não existir
+      if (!fs.existsSync(pasta)){
+        fs.mkdirSync(pasta, { recursive: true });
+      }
+      
+      cb(null, pasta);
+    },
     filename: function (req, file, cb) {
       const uniqueSuffix = Buffer.from(file.originalname).toString('hex');
       cb(null, uniqueSuffix + path.extname(file.originalname));
