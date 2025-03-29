@@ -82,7 +82,7 @@ export async function POST(request) {
       }
     }
 
-    // Criptografar senha (mantido igual)
+    // Criptografar senha 
     const senhaHash = await bcrypt.hash(senha, 10);
 
     await db.run(
