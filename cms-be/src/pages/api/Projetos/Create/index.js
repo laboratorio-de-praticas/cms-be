@@ -35,6 +35,24 @@ export default async function handler(req, res) {
       });
     });
 
+    // Parsing do JSON contido no campo dados
+    const dadosJSON = fields.dados ? JSON.parse(fields.dados) : {};
+
+    // Extrair dados do JSON
+    const {
+      nome_Projeto = '',
+      nome_equipe = '',
+      descricao = '',
+      turma = '',
+      tlr = '0',
+      cea = '0',
+      area_atuacao = '',
+      ods_ids = [],
+      linha_extensao_ids = [],
+      area_tematica_ids = [],
+      integrantes = []
+    } = dadosJSON;
+
     // Conectar ao banco de dados
     db = conectar_banco();
 
@@ -68,23 +86,9 @@ export default async function handler(req, res) {
       }
 
       // Mover arquivo para localização final
-      const caminho_final = path.join(process.cwd(), 'public/imgs/projetos', nome_arquivo);
+      const caminho_final = path.join(process.cwd(), 'public/imgs/projetos/capas', nome_arquivo);
       await fs.rename(arquivo.filepath, caminho_final);
     }
-
-    // Extrair dados do form e garantir que são strings
-    const nome_Projeto = fields.nome_Projeto?.[0] || fields.nome_Projeto || '';
-    const nome_equipe = fields.nome_equipe?.[0] || fields.nome_equipe || '';
-    const descricao = fields.descricao?.[0] || fields.descricao || '';
-    const turma = fields.turma?.[0] || fields.turma || '';
-    const tlr = fields.tlr?.[0] || fields.tlr || '0';
-    const cea = fields.cea?.[0] || fields.cea || '0';
-    const area_atuacao = fields.area_atuacao?.[0] || fields.area_atuacao || '';
-
-    // Parse dos arrays
-    const ods_ids = fields.ods_ids ? JSON.parse(fields.ods_ids) : [];
-    const linha_extensao_ids = fields.linha_extensao_ids ? JSON.parse(fields.linha_extensao_ids) : [];
-    const area_tematica_ids = fields.area_tematica_ids ? JSON.parse(fields.area_tematica_ids) : [];
 
     // Validações básicas
     if (!nome_Projeto.trim()) {
@@ -206,6 +210,19 @@ export default async function handler(req, res) {
           db.run(
             `INSERT INTO ProjetoAreaTematica (projeto_id, area_tematica_id) VALUES (?, ?)`,
             [projeto_id, area_id],
+            (err) => err ? reject(err) : resolve()
+          );
+        });
+      }
+    }
+
+    // Insere os integrantes
+    if (integrantes && integrantes.length > 0) {
+      for (const nome_integrante of integrantes) {
+        await new Promise((resolve, reject) => {
+          db.run(
+            `INSERT INTO IntegrantesEquipe (projeto_id, nome_integrante) VALUES (?, ?)`,
+            [projeto_id, nome_integrante],
             (err) => err ? reject(err) : resolve()
           );
         });
