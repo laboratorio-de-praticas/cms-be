@@ -19,7 +19,9 @@ export default async function handler(req, res) {
           GROUP_CONCAT(DISTINCT le.descricao) as linhas_extensao_descricoes,
           GROUP_CONCAT(DISTINCT le.id) as linhas_extensao_ids,
           GROUP_CONCAT(DISTINCT at.descricao) as areas_tematicas_descricoes,
-          GROUP_CONCAT(DISTINCT at.id) as areas_tematicas_ids
+          GROUP_CONCAT(DISTINCT at.id) as areas_tematicas_ids,
+          GROUP_CONCAT(DISTINCT ie.nome_integrante) as integrantes,
+          GROUP_CONCAT(DISTINCT ip.imagem_url) as imagens_projeto
         FROM Projetos p
         LEFT JOIN ProjetoODS po ON p.id = po.projeto_id
         LEFT JOIN ODS o ON po.ods_id = o.id
@@ -27,6 +29,8 @@ export default async function handler(req, res) {
         LEFT JOIN LinhaExtensao le ON ple.linha_extensao_id = le.id
         LEFT JOIN ProjetoAreaTematica pat ON p.id = pat.projeto_id
         LEFT JOIN AreaTematica at ON pat.area_tematica_id = at.id
+        LEFT JOIN IntegrantesEquipe ie ON p.id = ie.projeto_id
+        LEFT JOIN ImagensProjeto ip ON p.id = ip.projeto_id
         GROUP BY p.id
         ORDER BY p.id DESC
       `;
@@ -60,7 +64,9 @@ export default async function handler(req, res) {
           areas_tematicas: projeto.areas_tematicas_descricoes ? {
             ids: projeto.areas_tematicas_ids?.split(',').map(Number) || [],
             descricoes: projeto.areas_tematicas_descricoes?.split(',') || []
-          } : { ids: [], descricoes: [] }
+          } : { ids: [], descricoes: [] },
+          integrantes: projeto.integrantes ? projeto.integrantes.split(',') : [],
+          imagens_projeto: projeto.imagens_projeto ? projeto.imagens_projeto.split(',') : []
         }));
 
         resolve(projetos_formatados);
@@ -70,6 +76,7 @@ export default async function handler(req, res) {
     db.close();
 
     return res.status(200).json({
+      mensagem: 'Projetos recuperados com sucesso',
       projetos: projetos
     });
 

@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Processa o upload das imagens
+
     await processarUpload(req, res);
 
     const { id } = req.query;
