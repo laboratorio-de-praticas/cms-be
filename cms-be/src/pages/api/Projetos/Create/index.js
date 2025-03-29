@@ -30,13 +30,12 @@ export default async function handler(req, res) {
       return new Promise((resolve, reject) => {
         const sql = `
           INSERT INTO Projetos
-          (id, nome_Projeto, nome_equipe, tlr, imagem_capa, turma, descricao, cea, Ativo, area_atuacao)
-          VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (nome_Projeto, nome_equipe, tlr, imagem_capa, turma, descricao, cea, Ativo, area_atuacao)
+          VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         db.run(sql, 
           [
-            0,                    // id começa com 0
             nome_Projeto || '',   // se for null, usa string vazia
             nome_equipe || '',    // se for null, usa string vazia
             tlr || 0,            // se for null, usa 0
