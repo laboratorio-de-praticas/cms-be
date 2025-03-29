@@ -17,7 +17,6 @@ export async function POST(request) {
     const deseja_ser_candidato = formData.get("deseja_ser_candidato") === "true";
     const link_video = formData.get("link_video");
     const descricao_campanha = formData.get("descricao_campanha");
-
     const curso = formData.get("curso");
     const semestre = formData.get("semestre");
     const ano_ingresso = formData.get("ano_ingresso");
