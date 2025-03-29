@@ -1,3 +1,15 @@
+import { IncomingForm } from 'formidable';
+import fs from 'fs/promises';
+import path from 'path';
+import crypto from 'crypto';
+
+// Configuração para permitir o parsing do form-data
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 const conectar_banco = require('@/config/database');
 
 export default async function handler(req, res) {
@@ -5,33 +17,85 @@ export default async function handler(req, res) {
     return res.status(405).json({ erro: 'Método não permitido' });
   }
 
-  const db = conectar_banco();
-  
+  let db;
   try {
-    const { 
-      nome_Projeto, 
-      nome_equipe, 
-      tlr, 
-      imagem_capa, 
-      turma, 
-      descricao, 
-      cea, 
-      area_atuacao, 
-      ods_ids,
-      linha_extensao_ids,
-      area_tematica_ids
-    } = req.body;
+    // Criar diretório se não existir
+    await fs.mkdir(path.join(process.cwd(), 'public/imgs/projetos'), { recursive: true });
+
+    const form = new IncomingForm({
+      uploadDir: path.join(process.cwd(), 'public/imgs/projetos'),
+      keepExtensions: true,
+    });
+
+    // Parse do form-data
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve([fields, files]);
+      });
+    });
+
+    // Conectar ao banco de dados
+    db = conectar_banco();
+
+    // Processar imagem
+    let nome_arquivo = '';
+    if (files.imagem_capa) {
+      const arquivo = Array.isArray(files.imagem_capa) 
+        ? files.imagem_capa[0] 
+        : files.imagem_capa;
+
+      // Gerar hash para o nome do arquivo
+      const hash = crypto.createHash('md5')
+        .update(Date.now().toString())
+        .digest('hex');
+
+      const extensao = path.extname(arquivo.originalFilename);
+      nome_arquivo = `${hash}${extensao}`;
+      
+      // Validar tipo de arquivo
+      const tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!tipos_permitidos.includes(arquivo.mimetype)) {
+        await fs.unlink(arquivo.filepath);
+        return res.status(400).json({ erro: 'Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WEBP.' });
+      }
+
+      // Validar tamanho do arquivo (máximo 5MB)
+      const tamanho_maximo = 5 * 1024 * 1024; // 5MB
+      if (arquivo.size > tamanho_maximo) {
+        await fs.unlink(arquivo.filepath);
+        return res.status(400).json({ erro: 'Arquivo muito grande. Tamanho máximo permitido: 5MB' });
+      }
+
+      // Mover arquivo para localização final
+      const caminho_final = path.join(process.cwd(), 'public/imgs/projetos', nome_arquivo);
+      await fs.rename(arquivo.filepath, caminho_final);
+    }
+
+    // Extrair dados do form e garantir que são strings
+    const nome_Projeto = fields.nome_Projeto?.[0] || fields.nome_Projeto || '';
+    const nome_equipe = fields.nome_equipe?.[0] || fields.nome_equipe || '';
+    const descricao = fields.descricao?.[0] || fields.descricao || '';
+    const turma = fields.turma?.[0] || fields.turma || '';
+    const tlr = fields.tlr?.[0] || fields.tlr || '0';
+    const cea = fields.cea?.[0] || fields.cea || '0';
+    const area_atuacao = fields.area_atuacao?.[0] || fields.area_atuacao || '';
+
+    // Parse dos arrays
+    const ods_ids = fields.ods_ids ? JSON.parse(fields.ods_ids) : [];
+    const linha_extensao_ids = fields.linha_extensao_ids ? JSON.parse(fields.linha_extensao_ids) : [];
+    const area_tematica_ids = fields.area_tematica_ids ? JSON.parse(fields.area_tematica_ids) : [];
 
     // Validações básicas
-    if (!nome_Projeto?.trim()) {
+    if (!nome_Projeto.trim()) {
       return res.status(400).json({ erro: 'Nome do projeto é obrigatório' });
     }
 
-    if (!nome_equipe?.trim()) {
+    if (!nome_equipe.trim()) {
       return res.status(400).json({ erro: 'Nome da equipe é obrigatório' });
     }
 
-    if (!descricao?.trim()) {
+    if (!descricao.trim()) {
       return res.status(400).json({ erro: 'Descrição é obrigatória' });
     }
 
@@ -70,7 +134,9 @@ export default async function handler(req, res) {
     }
 
     // Inicia a transação
-    db.run("BEGIN TRANSACTION");
+    await new Promise((resolve, reject) => {
+      db.run("BEGIN TRANSACTION", (err) => err ? reject(err) : resolve());
+    });
 
     // Convertendo para Promise para melhor controle do fluxo assíncrono
     const inserir_projeto = () => {
@@ -83,15 +149,15 @@ export default async function handler(req, res) {
 
         db.run(sql, 
           [
-            nome_Projeto || '',   // se for null, usa string vazia
-            nome_equipe || '',    // se for null, usa string vazia
-            tlr || 0,            // se for null, usa 0
-            imagem_capa || '',   // se for null, usa string vazia
-            turma || '',         // se for null, usa string vazia
-            descricao || '',     // se for null, usa string vazia
-            cea || 0,           // se for null, usa 0
-            true,               // Ativo
-            area_atuacao || ''  // se for null, usa string vazia
+            nome_Projeto,
+            nome_equipe,
+            tlr,
+            nome_arquivo,
+            turma,
+            descricao,
+            cea,
+            true,
+            area_atuacao
           ],
           function(err) {
             if (err) {
@@ -162,8 +228,14 @@ export default async function handler(req, res) {
     console.error("Erro ao cadastrar projeto:", erro);
     
     // Rollback em caso de erro
-    db.run("ROLLBACK");
-    db.close();
+    if (db) {
+      await new Promise((resolve) => {
+        db.run("ROLLBACK", () => {
+          db.close();
+          resolve();
+        });
+      });
+    }
 
     return res.status(500).json({ erro: "Erro ao cadastrar projeto" });
   }
