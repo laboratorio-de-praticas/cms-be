@@ -1,6 +1,6 @@
 import { openDb } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
 export async function POST(request) {
@@ -68,15 +68,45 @@ export async function POST(request) {
     let fotoPath = "/uploads/default-profile.jpg";
     if (foto && foto.size > 0) {
       try {
+        
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+        const ext = path.extname(foto.name || "").toLowerCase();
+        
+        if (!allowedExtensions.includes(ext)) {
+          return new Response(
+            JSON.stringify({ error: "Tipo de arquivo não suportado. Use JPG, JPEG, PNG ou WEBP" }),
+            { status: 400 }
+          );
+        }
+
+        // Validação do tamanho do arquivo 
+        if (foto.size > 5 * 1024 * 1024) {
+          return new Response(
+            JSON.stringify({ error: "O arquivo é muito grande. Tamanho máximo: 5MB" }),
+            { status: 400 }
+          );
+        }
+
         const buffer = Buffer.from(await foto.arrayBuffer());
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const ext = path.extname(foto.name || "").toLowerCase() || ".jpg";
         fotoPath = `/uploads/candidatos/foto-${uniqueSuffix}${ext}`;
-        const uploadPath = path.join(process.cwd(), "public", fotoPath);
+        
+       
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'candidatos');
+        const uploadPath = path.join(uploadDir, `foto-${uniqueSuffix}${ext}`);
+
+        await mkdir(uploadDir, { recursive: true });
+        
+        // Salva o arquivo
         await writeFile(uploadPath, buffer);
+
       } catch (error) {
+        console.error("Erro detalhado no upload:", error);
         return new Response(
-          JSON.stringify({ error: "Erro ao salvar a foto" }),
+          JSON.stringify({ 
+            error: "Erro ao processar a imagem",
+            details: process.env.NODE_ENV === "development" ? error.message : undefined
+          }),
           { status: 500 }
         );
       }
@@ -106,6 +136,7 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Erro no registro:", error);
+    console.error("Erro no upload da imagem:", error); 
     return new Response(
       JSON.stringify({ 
         error: "Erro interno no servidor",
