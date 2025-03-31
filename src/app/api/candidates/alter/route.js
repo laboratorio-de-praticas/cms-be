@@ -3,14 +3,18 @@ import bcrypt from "bcryptjs";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-// Rota para atualizar candidato (PUT)
-export async function PUT(request) {
+function isAdminByEmail(userEmail) {
+  const adminEmail = "admin@fatec.sp.gov.br";
+  return userEmail === adminEmail;
+}
+
+export async function PUT(request, user) {
   try {
     const formData = await request.formData();
 
-    const ra = formData.get("ra"); 
+    const ra = formData.get("ra");
     const nome = formData.get("nome");
-    const email_institucional = formData.get("email_institucional");
+    let email_institucional = formData.get("email_institucional");
     const telefone = formData.get("telefone");
     const senha = formData.get("senha");
     const turma_atual = formData.get("turma_atual");
@@ -18,10 +22,9 @@ export async function PUT(request) {
     const deseja_ser_candidato = formData.get("deseja_ser_candidato") === "true";
     const link_video = formData.get("link_video");
     const descricao_campanha = formData.get("descricao_campanha");
-
-    const curso = formData.get("curso");
+    let curso = formData.get("curso");
     const semestre = formData.get("semestre");
-    const ano_ingresso = formData.get("ano_ingresso");
+    let ano_ingresso = formData.get("ano_ingresso");
 
     if (!ra) {
       return new Response(
@@ -32,13 +35,18 @@ export async function PUT(request) {
 
     const db = await openDb();
 
-    // Verificar se o candidato existe
     const existing = await db.get("SELECT * FROM Candidatos WHERE ra = ?", [ra]);
     if (!existing) {
       return new Response(
         JSON.stringify({ error: "Candidato não encontrado" }),
         { status: 404 }
       );
+    }
+
+    if (!isAdminByEmail(user.email)) {
+      email_institucional = existing.email_institucional; 
+      curso = existing.curso;
+      ano_ingresso = existing.ano_ingresso;
     }
 
     let fotoPath = existing.foto;
@@ -70,18 +78,18 @@ export async function PUT(request) {
         curso = ?, semestre = ?, ano_ingresso = ?
       WHERE ra = ?`,
       [
-        nome || existing.nome, 
-        email_institucional || existing.email_institucional, 
-        telefone || existing.telefone, 
-        senhaHash, 
-        turma_atual || existing.turma_atual, 
-        fotoPath, 
-        deseja_ser_candidato ? 1 : 0, 
-        link_video || existing.link_video, 
-        descricao_campanha || existing.descricao_campanha, 
-        curso || existing.curso, 
-        semestre || existing.semestre, 
-        ano_ingresso || existing.ano_ingresso, 
+        nome || existing.nome,
+        email_institucional || existing.email_institucional,
+        telefone || existing.telefone,
+        senhaHash,
+        turma_atual || existing.turma_atual,
+        fotoPath,
+        deseja_ser_candidato ? 1 : 0,
+        link_video || existing.link_video,
+        descricao_campanha || existing.descricao_campanha,
+        curso || existing.curso,
+        semestre || existing.semestre,
+        ano_ingresso || existing.ano_ingresso,
         ra
       ]
     );

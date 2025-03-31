@@ -9,7 +9,7 @@ export async function POST(request) {
 
     const ra = formData.get("ra"); 
     const nome = formData.get("nome");
-    const email_institucional = formData.get("email_institucional");
+    const email_institucional = formData.get("email_institucional");''
     const telefone = formData.get("telefone");
     const senha = formData.get("senha");
     const turma_atual = formData.get("turma_atual");
@@ -79,7 +79,10 @@ export async function POST(request) {
           );
         }
 
+<<<<<<< HEAD
         // Validação do tamanho do arquivo 
+=======
+>>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
         if (foto.size > 5 * 1024 * 1024) {
           return new Response(
             JSON.stringify({ error: "O arquivo é muito grande. Tamanho máximo: 5MB" }),
@@ -97,7 +100,10 @@ export async function POST(request) {
 
         await mkdir(uploadDir, { recursive: true });
         
+<<<<<<< HEAD
         // Salva o arquivo
+=======
+>>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
         await writeFile(uploadPath, buffer);
 
       } catch (error) {
@@ -112,19 +118,27 @@ export async function POST(request) {
       }
     }
 
+<<<<<<< HEAD
     // Criptografar senha 
+=======
+>>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
     const senhaHash = await bcrypt.hash(senha, 10);
+
+    const status_candidatura = deseja_ser_candidato ? "pendente" : null;
 
     await db.run(
       `INSERT INTO Candidatos (
         ra, email_institucional, telefone, senha, nome, turma_atual, foto, 
-        deseja_ser_candidato, link_video, descricao_campanha, curso, semestre, ano_ingresso
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ra, email_institucional, telefone, senhaHash, nome, turma_atual, 
-       fotoPath || "", 
-       deseja_ser_candidato ? 1 : 0, link_video || null, descricao_campanha || null,
-       curso, semestre, ano_ingresso]
-    );    
+        deseja_ser_candidato, link_video, descricao_campanha, curso, semestre, ano_ingresso, status_candidatura
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ra, email_institucional, telefone, senhaHash, nome, turma_atual, 
+        fotoPath || "", 
+        deseja_ser_candidato ? 1 : 0, link_video || null, descricao_campanha || null,
+        curso, semestre, ano_ingresso, "pendente"
+      ]
+    );
+        
 
     return new Response(
       JSON.stringify({ 
