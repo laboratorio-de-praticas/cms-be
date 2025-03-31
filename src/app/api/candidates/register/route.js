@@ -79,10 +79,7 @@ export async function POST(request) {
           );
         }
 
-<<<<<<< HEAD
-        // Validação do tamanho do arquivo 
-=======
->>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
+        // Validação do tamanho dos arquivos 
         if (foto.size > 5 * 1024 * 1024) {
           return new Response(
             JSON.stringify({ error: "O arquivo é muito grande. Tamanho máximo: 5MB" }),
@@ -100,10 +97,7 @@ export async function POST(request) {
 
         await mkdir(uploadDir, { recursive: true });
         
-<<<<<<< HEAD
-        // Salva o arquivo
-=======
->>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
+        // Salva os arquivos
         await writeFile(uploadPath, buffer);
 
       } catch (error) {
@@ -118,10 +112,7 @@ export async function POST(request) {
       }
     }
 
-<<<<<<< HEAD
-    // Criptografar senha 
-=======
->>>>>>> 09f034ca73edb700625301cd36e3a65c3a2b5466
+    // Criptografar senhas 
     const senhaHash = await bcrypt.hash(senha, 10);
 
     const status_candidatura = deseja_ser_candidato ? "pendente" : null;
