@@ -1,0 +1,108 @@
+-- Tabela Projetos
+CREATE TABLE Projetos (
+    id_projeto INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome_projeto TEXT NOT NULL,
+    nome_equipe TEXT NOT NULL,
+    tlr INTEGER NOT NULL,
+    imagem_capa TEXT NOT NULL,
+    turma TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    cea INTEGER NOT NULL,
+    area_atuacao TEXT NOT NULL
+);
+
+-- Tabela ImagensProjeto
+CREATE TABLE ImagensProjeto (
+    id_imagem INTEGER PRIMARY KEY AUTOINCREMENT,
+    projeto_id INTEGER NOT NULL,
+    imagem_url TEXT NOT NULL,
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto)
+);
+
+-- Tabela IntegrantesEquipe
+CREATE TABLE IntegrantesEquipe (
+    id_integrante INTEGER PRIMARY KEY AUTOINCREMENT,
+    projeto_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (usuario_id) REFERENCES Usuario(id_usuario)
+);
+
+-- Tabela ODS
+CREATE TABLE ODS (
+    id_ods INTEGER PRIMARY KEY AUTOINCREMENT,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoODS
+CREATE TABLE ProjetoODS (
+    projeto_id INTEGER NOT NULL,
+    ods_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, ods_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (ods_id) REFERENCES ODS(id_ods)
+);
+
+-- Tabela AreaTematica
+CREATE TABLE AreaTematica (
+    id_area INTEGER PRIMARY KEY AUTOINCREMENT,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoAreaTematica
+CREATE TABLE ProjetoAreaTematica (
+    projeto_id INTEGER NOT NULL,
+    area_tematica_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, area_tematica_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (area_tematica_id) REFERENCES AreaTematica(id_area)
+);
+
+-- Tabela LinhaExtensao
+CREATE TABLE LinhaExtensao (
+    id_linha INTEGER PRIMARY KEY AUTOINCREMENT,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoLinhaExtensao
+CREATE TABLE ProjetoLinhaExtensao (
+    projeto_id INTEGER NOT NULL,
+    linha_extensao_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, linha_extensao_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (linha_extensao_id) REFERENCES LinhaExtensao(id_linha)
+);
+
+-- Tabela Usuario
+CREATE TABLE Usuario (
+    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+    email_institucional TEXT NOT NULL UNIQUE,
+    telefone TEXT NOT NULL,
+    senha TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    tipo_usuario TEXT NOT NULL CHECK(tipo_usuario IN ('admin', 'aluno', 'professor')),
+    foto TEXT
+);
+
+--Tabela Candidato
+CREATE TABLE Candidato(
+    id_candidato INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER,
+    ra INTEGER UNIQUE,
+    turma_atual TEXT,
+    deseja_ser_candidato BOOLEAN,
+    descricao_campanha TEXT,
+    projeto_id INTEGER,
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto)
+);
+
+
+-- Tabela Visitantes (opcional: se quiser separar dos usuários)
+CREATE TABLE Visitantes (
+    id_visitante INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    telefone TEXT NOT NULL,
+    senha TEXT NOT NULL,
+    cidade TEXT NOT NULL
+);
+
