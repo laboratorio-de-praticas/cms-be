@@ -19,12 +19,43 @@ O módulo de Projetos é responsável pelo gerenciamento dos projetos das feiras
 - Filtros por turma e status
 - Busca por projetos específicos
 
+## Autenticação
+
+Para acessar as rotas protegidas do módulo de Projetos, é necessário realizar o login e obter um token JWT. Este token deve ser incluído no cabeçalho `Authorization` de cada requisição para as rotas que requerem autenticação.
+
+### Login
+Para obter o token, você deve fazer uma requisição ao endpoint de login:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+    "email": "seu_email@fatec.sp.gov.br",
+    "senha": "sua_senha"
+}
+```
+
+Resposta esperada:
+```json
+{
+    "success": true,
+    "token": "seu_token_jwt_aqui"
+}
+```
+
+### Uso do Token
+Após obter o token, você deve incluí-lo nas requisições para as rotas protegidas. O formato do cabeçalho deve ser:
+
+Authorization: Bearer seu_token_jwt_aqui
+
 ### 3. API Endpoints
 
 #### Criar Projeto
 ```http
 POST /api/Projetos/Create
 Content-Type: multipart/form-data
+Authorization: Bearer seu_token_jwt_aqui
 
 {
     "dados": {
@@ -145,6 +176,7 @@ Resposta:
 #### Listar Todos os Projetos
 ```http
 GET /api/Projetos/Get_all
+Authorization: Bearer seu_token_jwt_aqui
 ```
 
 Resposta:
@@ -231,6 +263,7 @@ Resposta:
 #### Buscar Projeto por ID
 ```http
 GET /api/Projetos/Get_id?id=1
+Authorization: Bearer seu_token_jwt_aqui
 ```
 
 Resposta:
@@ -316,6 +349,7 @@ Resposta:
 ```http
 PUT /api/Projetos/Update_Project
 Content-Type: multipart/form-data
+Authorization: Bearer seu_token_jwt_aqui
 
 {
     "dados": {
@@ -399,6 +433,7 @@ Resposta:
 ```http
 PUT /api/Projetos/Disable
 Content-Type: application/json
+Authorization: Bearer seu_token_jwt_aqui
 
 {
     "id": 1
