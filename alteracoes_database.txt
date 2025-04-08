@@ -1,3 +1,5 @@
+-- Versão SQLite
+
 -- Tabela Projetos
 CREATE TABLE Projetos (
     id_projeto INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -8,7 +10,8 @@ CREATE TABLE Projetos (
     turma TEXT NOT NULL,
     descricao TEXT NOT NULL,
     cea INTEGER NOT NULL,
-    area_atuacao TEXT NOT NULL
+    area_atuacao TEXT NOT NULL,
+    ativo BOOLEAN DEFAULT 1
 );
 
 -- Tabela ImagensProjeto
@@ -81,7 +84,8 @@ CREATE TABLE Usuario (
     senha TEXT NOT NULL,
     nome TEXT NOT NULL,
     tipo_usuario TEXT NOT NULL CHECK(tipo_usuario IN ('admin', 'aluno', 'professor')),
-    foto TEXT
+    foto TEXT,
+    ativo BOOLEAN DEFAULT 1
 );
 
 --Tabela Candidato
@@ -91,18 +95,134 @@ CREATE TABLE Candidato(
     ra INTEGER UNIQUE,
     turma_atual TEXT,
     deseja_ser_candidato BOOLEAN,
-    descricao_campanha TEXT,
-    projeto_id INTEGER,
-    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto)
+    descricao_campanha TEXT
 );
 
-
--- Tabela Visitantes (opcional: se quiser separar dos usuários)
+-- Tabela Visitantes
 CREATE TABLE Visitantes (
     id_visitante INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     telefone TEXT NOT NULL,
     senha TEXT NOT NULL,
-    cidade TEXT NOT NULL
+    cidade TEXT NOT NULL,
+    ativo BOOLEAN DEFAULT 1,
+    avaliador_tecnico BOOLEAN DEFAULT 1 
 );
 
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+-- Versão POSTGRESQL
+
+-- Tabela Projetos
+CREATE TABLE Projetos (
+    id_projeto SERIAL PRIMARY KEY,
+    nome_projeto TEXT NOT NULL,
+    nome_equipe TEXT NOT NULL,
+    tlr INTEGER NOT NULL,
+    imagem_capa TEXT NOT NULL,
+    turma TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    cea INTEGER NOT NULL,
+    area_atuacao TEXT NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+-- Tabela ImagensProjeto
+CREATE TABLE ImagensProjeto (
+    id_imagem SERIAL PRIMARY KEY,
+    projeto_id INTEGER NOT NULL,
+    imagem_url TEXT NOT NULL,
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto)
+);
+
+-- Tabela Usuario
+CREATE TABLE Usuario (
+    id_usuario SERIAL PRIMARY KEY,
+    email_institucional TEXT NOT NULL UNIQUE,
+    telefone TEXT NOT NULL,
+    senha TEXT NOT NULL,
+    nome TEXT NOT NULL,
+    tipo_usuario TEXT NOT NULL CHECK(tipo_usuario IN ('admin', 'aluno', 'professor')),
+    foto TEXT,
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+-- Tabela IntegrantesEquipe
+CREATE TABLE IntegrantesEquipe (
+    id_integrante SERIAL PRIMARY KEY,
+    projeto_id INTEGER NOT NULL,
+    usuario_id INTEGER NOT NULL,
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (usuario_id) REFERENCES Usuario(id_usuario)
+);
+
+-- Tabela ODS
+CREATE TABLE ODS (
+    id_ods SERIAL PRIMARY KEY,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoODS
+CREATE TABLE ProjetoODS (
+    projeto_id INTEGER NOT NULL,
+    ods_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, ods_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (ods_id) REFERENCES ODS(id_ods)
+);
+
+-- Tabela AreaTematica
+CREATE TABLE AreaTematica (
+    id_area SERIAL PRIMARY KEY,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoAreaTematica
+CREATE TABLE ProjetoAreaTematica (
+    projeto_id INTEGER NOT NULL,
+    area_tematica_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, area_tematica_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (area_tematica_id) REFERENCES AreaTematica(id_area)
+);
+
+-- Tabela LinhaExtensao
+CREATE TABLE LinhaExtensao (
+    id_linha SERIAL PRIMARY KEY,
+    descricao TEXT NOT NULL
+);
+
+-- Tabela ProjetoLinhaExtensao
+CREATE TABLE ProjetoLinhaExtensao (
+    projeto_id INTEGER NOT NULL,
+    linha_extensao_id INTEGER NOT NULL,
+    PRIMARY KEY (projeto_id, linha_extensao_id),
+    FOREIGN KEY (projeto_id) REFERENCES Projetos(id_projeto),
+    FOREIGN KEY (linha_extensao_id) REFERENCES LinhaExtensao(id_linha)
+);
+
+-- Tabela Candidato
+CREATE TABLE Candidato (
+    id_candidato SERIAL PRIMARY KEY,
+    id_usuario INTEGER,
+    ra INTEGER UNIQUE,
+    turma_atual TEXT,
+    deseja_ser_candidato BOOLEAN,
+    descricao_campanha TEXT,
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
+);
+
+-- Tabela Visitantes
+CREATE TABLE Visitantes (
+    id_visitante SERIAL PRIMARY KEY,
+    nome TEXT NOT NULL,
+    telefone TEXT NOT NULL,
+    senha TEXT NOT NULL,
+    cidade TEXT NOT NULL,
+    ativo BOOLEAN DEFAULT TRUE,
+    avaliador_tecnico BOOLEAN DEFAULT FALSE
+);
