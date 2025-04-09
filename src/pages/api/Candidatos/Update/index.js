@@ -303,6 +303,49 @@ export default async function handler(req, res) {
       }
     }
 
+    console.log("Verificando estrutura da tabela Candidatos...");
+    await new Promise((resolve, reject) => {
+      db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='Candidatos'", (err, row) => {
+        if (err) {
+          console.error('Erro ao verificar tabela:', err);
+          reject(err);
+        }
+        if (!row) {
+          console.log('Tabela Candidatos não existe, criando...');
+          db.run(`
+            CREATE TABLE IF NOT EXISTS Candidatos (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              ra TEXT UNIQUE NOT NULL,
+              email_institucional TEXT UNIQUE NOT NULL,
+              telefone TEXT NOT NULL,
+              senha TEXT NOT NULL,
+              nome TEXT NOT NULL,
+              turma_atual TEXT NOT NULL,
+              foto TEXT,
+              deseja_ser_candidato INTEGER DEFAULT 0,
+              link_video TEXT,
+              descricao_campanha TEXT,
+              curso TEXT NOT NULL,
+              semestre TEXT NOT NULL,
+              ano_ingresso TEXT NOT NULL,
+              status_candidatura TEXT,
+              qr_code TEXT
+            )
+          `, (err) => {
+            if (err) {
+              console.error('Erro ao criar tabela:', err);
+              reject(err);
+            }
+            console.log('Tabela Candidatos criada com sucesso');
+            resolve();
+          });
+        } else {
+          console.log('Tabela Candidatos já existe');
+          resolve();
+        }
+      });
+    });
+
     let sql = `
   UPDATE Candidatos SET
     telefone = ?,
@@ -382,12 +425,43 @@ export default async function handler(req, res) {
       });
     });
 
+    // Buscar dados atualizados do candidato
+    const candidato_atualizado = await new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM Candidatos WHERE id = ?',
+        [id],
+        (err, row) => {
+          if (err) {
+            console.error("Erro ao buscar candidato atualizado:", err);
+            reject(err);
+          }
+          resolve(row);
+        }
+      );
+    });
+
     db.close();
     console.log("Conexão com o banco fechada");
 
     return res.status(200).json({
       mensagem: "Candidato atualizado com sucesso!",
-      dados: { id, ra, nome, email: email_institucional },
+      dados: {
+        id: candidato_atualizado.id,
+        ra: candidato_atualizado.ra,
+        nome: candidato_atualizado.nome,
+        email_institucional: candidato_atualizado.email_institucional,
+        telefone: candidato_atualizado.telefone,
+        turma_atual: candidato_atualizado.turma_atual,
+        foto: candidato_atualizado.foto,
+        deseja_ser_candidato: Boolean(candidato_atualizado.deseja_ser_candidato),
+        link_video: candidato_atualizado.link_video,
+        descricao_campanha: candidato_atualizado.descricao_campanha,
+        curso: candidato_atualizado.curso,
+        semestre: candidato_atualizado.semestre,
+        ano_ingresso: candidato_atualizado.ano_ingresso,
+        status_candidatura: candidato_atualizado.status_candidatura,
+        qr_code: candidato_atualizado.status_candidatura === 'aprovado' ? candidato_atualizado.qr_code : null
+      }
     });
   } catch (erro) {
     console.error("Erro ao atualizar candidato:", erro);

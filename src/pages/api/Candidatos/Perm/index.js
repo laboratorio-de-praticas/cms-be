@@ -1,6 +1,7 @@
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import fsSync from 'fs';
+import { generateQRCode } from '../../../../utils/qrCodeGenerator';
 
 const conectar_banco = () => {
   try {
@@ -63,11 +64,11 @@ export default async function handler(req, res) {
     console.log('Verificando se candidato existe...');
     const candidato = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT * FROM Candidatos WHERE ra = ?',
-        [ra],
+        'SELECT * FROM Candidatos WHERE id = ?',
+        [id],
         (err, row) => {
           if (err) {
-            console.error('Erro ao verificar candidato:', err);
+            console.error("Erro ao buscar candidato:", err);
             reject(err);
           }
           resolve(row);
@@ -76,37 +77,46 @@ export default async function handler(req, res) {
     });
 
     if (!candidato) {
-      console.log('Candidato não encontrado:', ra);
       db.close();
-      return res.status(404).json({ 
-        erro: 'Candidato não encontrado',
-        ra_recebido: ra
-      });
+      return res.status(404).json({ mensagem: "Candidato não encontrado" });
     }
 
-    // Atualizar status da candidatura
-    console.log('Atualizando status da candidatura...');
+    // Verificar se o candidato está aprovado
+    if (candidato.status_candidatura !== 'aprovado') {
+      db.close();
+      return res.status(400).json({ mensagem: "Apenas candidatos aprovados podem ter QR Code gerado" });
+    }
+
+    // Gerar QR Code
+    const qrCodePath = `public/imgs/candidatos/qrcodes/${candidato.id}.png`;
+    const qrCodeUrl = `/imgs/candidatos/qrcodes/${candidato.id}.png`;
+    
+    await generateQRCode(
+      `https://seu-site.com/candidatos/${candidato.id}`,
+      qrCodePath
+    );
+
+    // Atualizar o QR Code no banco
     await new Promise((resolve, reject) => {
       db.run(
-        'UPDATE Candidatos SET status_candidatura = ? WHERE ra = ?',
-        [status, ra],
+        'UPDATE Candidatos SET qr_code = ? WHERE id = ?',
+        [qrCodeUrl, id],
         (err) => {
           if (err) {
-            console.error('Erro ao atualizar status da candidatura:', err);
+            console.error("Erro ao atualizar QR Code:", err);
             reject(err);
           }
-          console.log('Status atualizado com sucesso');
           resolve();
         }
       );
     });
 
     db.close();
-    console.log('Conexão com o banco fechada');
+    console.log("Conexão com o banco fechada");
 
-    return res.status(200).json({ 
-      mensagem: 'Status da candidatura atualizado com sucesso',
-      dados: { ra, status_atualizado: status }
+    return res.status(200).json({
+      mensagem: "QR Code gerado com sucesso!",
+      qr_code: qrCodeUrl
     });
 
   } catch (erro) {

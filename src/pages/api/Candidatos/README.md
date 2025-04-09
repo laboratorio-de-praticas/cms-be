@@ -1,223 +1,131 @@
-# Documentação - Módulo de Candidatos
+# Módulo de Candidatos
 
 ## Visão Geral
-O módulo de Candidatos é responsável pelo gerenciamento de representantes de turma, permitindo o cadastro, edição e visualização de informações dos candidatos.
+Este módulo gerencia o processo de candidatura de alunos para projetos, incluindo a geração de QR Codes para candidatos aprovados.
 
 ## Funcionalidades
+- Cadastro de candidatos
+- Aprovação de candidatos
+- Geração automática de QR Code para candidatos aprovados
+- Consulta de candidatos com QR Code apenas para aprovados
 
-### 1. Cadastro de Candidatos
-- Permite o cadastro de novos candidatos com informações pessoais
-- Upload de fotos dos candidatos
-- Validação de dados obrigatórios
-- Armazenamento seguro das informações
+## API Endpoints
 
-### 2. Gerenciamento de Candidatos
-- Visualização de todos os candidatos cadastrados
-- Edição de informações dos candidatos
-- Exclusão de candidatos (quando necessário)
-- Filtros e busca por candidatos específicos
+### Criar Usuário com Suporte a Candidato
+`POST /api/Usuarios/Create`
 
-### 3. API Endpoints
-
-#### Criar Candidato
-```http
-POST /api/Candidatos/Create
-Content-Type: multipart/form-data
-
+**Corpo da Requisição:**
+```json
 {
-    "dados": {
-        "ra": "123456789",
-        "nome": "João Silva",
-        "email_institucional": "joao.silva@fatec.sp.gov.br",
-        "telefone": "(11) 99999-9999",
-        "senha": "senha123",
-        "turma_atual": "DSM4",
-        "curso": "Desenvolvimento de Software Multiplataforma",
-        "semestre": "4",
-        "ano_ingresso": "2022",
-        "deseja_ser_candidato": "true",
-        "link_video": "https://youtube.com/...",
-        "descricao_campanha": "Minha proposta de campanha..."
-    },
-    "foto": [arquivo]
+  "nome": "string",
+  "email_institucional": "string",
+  "senha": "string",
+  "tipo_usuario": "aluno|professor|admin",
+  "foto": "file (opcional)",
+  // Campos específicos para alunos
+  "ra": "string",
+  "turma": "string",
+  "curso": "string",
+  "deseja_ser_candidato": boolean
 }
 ```
 
-Campos Obrigatórios:
-- `ra`: Registro Acadêmico (único)
-- `nome`: Nome completo do candidato
-- `email_institucional`: Email institucional (@fatec.sp.gov.br)
-- `telefone`: Número de telefone
-- `senha`: Senha de acesso
-- `turma_atual`: Turma atual
-- `curso`: Curso do candidato
-- `semestre`: Semestre atual
-- `ano_ingresso`: Ano de ingresso
-
-Campos Opcionais:
-- `deseja_ser_candidato`: Boolean (default: false)
-- `link_video`: URL do vídeo de campanha
-- `descricao_campanha`: Descrição da campanha
-- `foto`: Imagem de perfil
-
-Validações:
-- Email institucional deve terminar com @fatec.sp.gov.br
-- RA e email institucional devem ser únicos
-- Foto deve ser JPG, PNG, GIF ou WEBP
-- Tamanho máximo da foto: 5MB
-
-Resposta:
+**Resposta de Sucesso:**
 ```json
 {
-    "success": true,
-    "message": "Candidato criado com sucesso",
-    "data": {
-        "id": 1,
-        "ra": "123456789",
-        "nome": "João Silva",
-        "email_institucional": "joao.silva@fatec.sp.gov.br",
-        "telefone": "(11) 99999-9999",
-        "turma_atual": "DSM4",
-        "foto_url": "/imgs/candidatos/123456789.jpg",
-        "deseja_ser_candidato": true,
-        "link_video": "https://youtube.com/...",
-        "descricao_campanha": "Minha proposta de campanha...",
-        "curso": "Desenvolvimento de Software Multiplataforma",
-        "semestre": "4",
-        "ano_ingresso": "2022",
-        "status_candidatura": "pendente",
-        "created_at": "2024-04-03T10:00:00Z"
+  "mensagem": "Usuário criado com sucesso",
+  "dados": {
+    "id": "string",
+    "nome": "string",
+    "email_institucional": "string",
+    "tipo_usuario": "string",
+    "foto": "string",
+    "qr_code": "string (apenas para alunos aprovados)"
+  }
+}
+```
+
+### Aprovar Candidato
+`PUT /api/Candidatos/Aprovar`
+
+**Corpo da Requisição:**
+```json
+{
+  "id_usuario": "string"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "mensagem": "Candidato aprovado com sucesso",
+  "dados": {
+    "id": "string",
+    "qr_code": "string"
+  }
+}
+```
+
+### Gerar QR Code para Candidato Aprovado
+`PUT /api/Candidatos/Perm`
+
+**Corpo da Requisição:**
+```json
+{
+  "id": "string"
+}
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "mensagem": "QR Code gerado com sucesso!",
+  "qr_code": "string"
+}
+```
+
+### Listar Todos os Candidatos
+`GET /api/Candidatos/Get_all`
+
+**Resposta de Sucesso:**
+```json
+{
+  "candidatos": [
+    {
+      "id": "string",
+      "nome": "string",
+      "ra": "string",
+      "turma": "string",
+      "curso": "string",
+      "status_candidatura": "string",
+      "qr_code": "string (apenas para candidatos aprovados)"
     }
-}
-```
-
-#### Listar Todos os Candidatos
-```http
-GET /api/Candidatos/Get_all
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "data": [
-        {
-            "id": 1,
-            "ra": "123456789",
-            "nome": "João Silva",
-            "email_institucional": "joao.silva@fatec.sp.gov.br",
-            "telefone": "(11) 99999-9999",
-            "turma_atual": "DSM4",
-            "foto_url": "/imgs/candidatos/123456789.jpg",
-            "deseja_ser_candidato": true,
-            "link_video": "https://youtube.com/...",
-            "descricao_campanha": "Minha proposta de campanha...",
-            "curso": "Desenvolvimento de Software Multiplataforma",
-            "semestre": "4",
-            "ano_ingresso": "2022",
-            "status_candidatura": "pendente",
-            "created_at": "2024-04-03T10:00:00Z"
-        }
-    ]
-}
-```
-
-#### Atualizar Candidato
-```http
-PUT /api/Candidatos/Update
-Content-Type: multipart/form-data
-
-{
-    "dados": {
-        "id": 1,
-        "nome": "João Silva Santos",
-        "email_institucional": "joao.silva@fatec.sp.gov.br",
-        "telefone": "(11) 97777-7777",
-        "turma_atual": "DSM4",
-        "curso": "Desenvolvimento de Software Multiplataforma",
-        "semestre": "4",
-        "ano_ingresso": "2022",
-        "deseja_ser_candidato": "true",
-        "link_video": "https://youtube.com/...",
-        "descricao_campanha": "Nova proposta de campanha..."
-    },
-    "foto": [arquivo]
-}
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "message": "Candidato atualizado com sucesso",
-    "data": {
-        "id": 1,
-        "ra": "123456789",
-        "nome": "João Silva Santos",
-        "email_institucional": "joao.silva@fatec.sp.gov.br",
-        "telefone": "(11) 97777-7777",
-        "turma_atual": "DSM4",
-        "foto_url": "/imgs/candidatos/123456789.jpg",
-        "deseja_ser_candidato": true,
-        "link_video": "https://youtube.com/...",
-        "descricao_campanha": "Nova proposta de campanha...",
-        "curso": "Desenvolvimento de Software Multiplataforma",
-        "semestre": "4",
-        "ano_ingresso": "2022",
-        "status_candidatura": "pendente",
-        "updated_at": "2024-04-03T12:00:00Z"
-    }
-}
-```
-
-#### Excluir Candidato
-```http
-DELETE /api/Candidatos/Perm
-Content-Type: application/json
-
-{
-    "id": 1
-}
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "message": "Candidato excluído permanentemente"
+  ]
 }
 ```
 
 ## Estrutura de Dados
-Os candidatos possuem as seguintes informações:
-- `id`: Identificador único
-- `ra`: Registro Acadêmico (único)
-- `nome`: Nome completo
-- `email_institucional`: Email institucional (@fatec.sp.gov.br)
-- `telefone`: Número de telefone
-- `senha`: Senha criptografada
-- `turma_atual`: Turma atual
-- `foto`: URL da foto de perfil
-- `deseja_ser_candidato`: Boolean
-- `link_video`: URL do vídeo de campanha
-- `descricao_campanha`: Descrição da campanha
-- `curso`: Curso do candidato
-- `semestre`: Semestre atual
-- `ano_ingresso`: Ano de ingresso
-- `status_candidatura`: Status da candidatura
-- `created_at`: Data de criação
-- `updated_at`: Data de atualização
 
-## Segurança
-- Validação de dados antes do cadastro
-- Verificação de permissões para operações de edição/exclusão
-- Proteção contra dados inválidos ou maliciosos
-- Senhas armazenadas com hash bcrypt
-- Validação de email institucional
-- Validação de tipos e tamanhos de arquivos
+### Tabela Candidatos
+```sql
+CREATE TABLE Candidatos (
+  id TEXT PRIMARY KEY,
+  ra TEXT UNIQUE NOT NULL,
+  turma TEXT NOT NULL,
+  curso TEXT NOT NULL,
+  status_candidatura TEXT DEFAULT 'pendente',
+  qr_code TEXT,
+  FOREIGN KEY (id) REFERENCES Usuario(id)
+);
+```
+
+## Medidas de Segurança
+- Validação de dados de entrada
+- Verificação de permissões
+- Hash de senhas
+- Geração de QR Code apenas para candidatos aprovados
 
 ## Integração
-O módulo de Candidatos está integrado com:
-- Sistema de autenticação
-- Módulo de Projetos
-- Sistema de exibição pública (Vitrine) 
+- O módulo se integra com o sistema de usuários
+- QR Codes são gerados apenas para candidatos aprovados
+- As imagens dos QR Codes são armazenadas em `public/imgs/candidatos/qrcodes/` 

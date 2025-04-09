@@ -1,7 +1,7 @@
 # Documentação - Módulo de Projetos
 
 ## Visão Geral
-O módulo de Projetos é responsável pelo gerenciamento dos projetos das feiras FTX e HubTec, permitindo o cadastro, edição e visualização de informações dos projetos.
+Este módulo gerencia o cadastro e visualização de projetos, incluindo a geração automática de QR Codes para cada projeto.
 
 ## Funcionalidades
 
@@ -11,6 +11,7 @@ O módulo de Projetos é responsável pelo gerenciamento dos projetos das feiras
 - Associação com equipe responsável
 - Categorização por turma/curso
 - Validação de dados obrigatórios
+- Geração automática de QR Code para cada projeto
 
 ### 2. Gerenciamento de Projetos
 - Visualização de todos os projetos cadastrados
@@ -58,55 +59,17 @@ Content-Type: multipart/form-data
 Authorization: Bearer seu_token_jwt_aqui
 
 {
-    "dados": {
-        "nome_Projeto": "Sistema de Gestão Escolar",
-        "nome_equipe": "Equipe Alpha",
-        "descricao": "Sistema para gerenciamento de atividades escolares",
-        "turma": "DSM4",
-        "tlr": "1",
-        "cea": "1",
-        "area_atuacao": "Educação",
-        "ods_ids": [1, 2, 3],
-        "linha_extensao_ids": [1, 2],
-        "area_tematica_ids": [1],
-        "integrantes": [
-            {
-                "nome": "João Silva",
-                "funcao": "Desenvolvedor Backend"
-            },
-            {
-                "nome": "Maria Santos",
-                "funcao": "Desenvolvedora Frontend"
-            }
-        ]
-    },
-    "imagem_capa": [arquivo],
-    "imagens_projeto": [arquivo1, arquivo2]
+    "nome_projeto": "string",
+    "nome_equipe": "string",
+    "tlr": "string",
+    "turma": "string",
+    "descricao": "string",
+    "cea": "string",
+    "area_atuacao": "string",
+    "imagem_capa": "file (opcional)",
+    "imagens": ["file"] (opcional)
 }
 ```
-
-Campos Obrigatórios:
-- `nome_Projeto`: Nome do projeto (único)
-- `nome_equipe`: Nome da equipe
-- `descricao`: Descrição detalhada do projeto
-- `turma`: Turma responsável
-- `tlr`: Indicador de Tecnologia, Liderança e Responsabilidade
-- `cea`: Indicador de Criatividade, Empreendedorismo e Aprendizagem
-- `area_atuacao`: Área de atuação do projeto
-
-Campos Opcionais:
-- `ods_ids`: IDs dos Objetivos de Desenvolvimento Sustentável
-- `linha_extensao_ids`: IDs das Linhas de Extensão
-- `area_tematica_ids`: IDs das Áreas Temáticas
-- `imagem_capa`: Imagem de capa do projeto
-- `imagens_projeto`: Imagens adicionais do projeto
-- `integrantes`: Lista de integrantes da equipe
-
-Validações:
-- Nome do projeto deve ser único
-- Imagens devem ser JPG, PNG, GIF ou WEBP
-- Tamanho máximo de cada imagem: 5MB
-- ODS, Linhas de Extensão e Áreas Temáticas devem existir no banco
 
 Resposta:
 ```json
@@ -114,61 +77,17 @@ Resposta:
     "success": true,
     "message": "Projeto criado com sucesso",
     "data": {
-        "id": 1,
-        "nome_Projeto": "Sistema de Gestão Escolar",
-        "nome_equipe": "Equipe Alpha",
-        "descricao": "Sistema para gerenciamento de atividades escolares",
-        "turma": "DSM4",
-        "tlr": "1",
-        "cea": "1",
-        "area_atuacao": "Educação",
-        "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-        "imagens_projeto": [
-            "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-            "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-        ],
-        "ods": [
-            {
-                "id": 1,
-                "nome": "ODS 1 - Erradicação da Pobreza"
-            },
-            {
-                "id": 2,
-                "nome": "ODS 2 - Fome Zero"
-            },
-            {
-                "id": 3,
-                "nome": "ODS 3 - Saúde e Bem-Estar"
-            }
-        ],
-        "linhas_extensao": [
-            {
-                "id": 1,
-                "nome": "Tecnologia e Inovação"
-            },
-            {
-                "id": 2,
-                "nome": "Educação"
-            }
-        ],
-        "areas_tematicas": [
-            {
-                "id": 1,
-                "nome": "Tecnologia da Informação"
-            }
-        ],
-        "integrantes": [
-            {
-                "nome": "João Silva",
-                "funcao": "Desenvolvedor Backend"
-            },
-            {
-                "nome": "Maria Santos",
-                "funcao": "Desenvolvedora Frontend"
-            }
-        ],
-        "status": "ativo",
-        "created_at": "2024-04-03T10:00:00Z"
+        "id": "string",
+        "nome_projeto": "string",
+        "nome_equipe": "string",
+        "tlr": "string",
+        "turma": "string",
+        "descricao": "string",
+        "cea": "string",
+        "area_atuacao": "string",
+        "imagem_capa": "string",
+        "imagens": ["string"],
+        "qr_code": "string"
     }
 }
 ```
@@ -185,45 +104,17 @@ Resposta:
     "success": true,
     "data": [
         {
-            "id": 1,
-            "nome_Projeto": "Sistema de Gestão Escolar",
-            "nome_equipe": "Equipe Alpha",
-            "descricao": "Sistema para gerenciamento de atividades escolares",
-            "turma": "DSM4",
-            "tlr": "1",
-            "cea": "1",
-            "area_atuacao": "Educação",
-            "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-            "imagens_projeto": [
-                "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-                "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-            ],
-            "ods": [
-                {
-                    "id": 1,
-                    "nome": "ODS 1 - Erradicação da Pobreza"
-                }
-            ],
-            "linhas_extensao": [
-                {
-                    "id": 1,
-                    "nome": "Tecnologia e Inovação"
-                }
-            ],
-            "areas_tematicas": [
-                {
-                    "id": 1,
-                    "nome": "Tecnologia da Informação"
-                }
-            ],
-            "integrantes": [
-                {
-                    "nome": "João Silva",
-                    "funcao": "Desenvolvedor Backend"
-                }
-            ],
-            "status": "ativo",
-            "created_at": "2024-04-03T10:00:00Z"
+            "id": "string",
+            "nome_projeto": "string",
+            "nome_equipe": "string",
+            "tlr": "string",
+            "turma": "string",
+            "descricao": "string",
+            "cea": "string",
+            "area_atuacao": "string",
+            "imagem_capa": "string",
+            "imagens": ["string"],
+            "qr_code": "string"
         }
     ]
 }
@@ -240,21 +131,17 @@ Resposta:
     "success": true,
     "data": [
         {
-            "id": 1,
-            "nome_Projeto": "Sistema de Gestão Escolar",
-            "nome_equipe": "Equipe Alpha",
-            "descricao": "Sistema para gerenciamento de atividades escolares",
-            "turma": "DSM4",
-            "tlr": "1",
-            "cea": "1",
-            "area_atuacao": "Educação",
-            "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-            "imagens_projeto": [
-                "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-                "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-            ],
-            "status": "ativo",
-            "created_at": "2024-04-03T10:00:00Z"
+            "id": "string",
+            "nome_projeto": "string",
+            "nome_equipe": "string",
+            "tlr": "string",
+            "turma": "string",
+            "descricao": "string",
+            "cea": "string",
+            "area_atuacao": "string",
+            "imagem_capa": "string",
+            "imagens": ["string"],
+            "qr_code": "string"
         }
     ]
 }
@@ -271,45 +158,17 @@ Resposta:
 {
     "success": true,
     "data": {
-        "id": 1,
-        "nome_Projeto": "Sistema de Gestão Escolar",
-        "nome_equipe": "Equipe Alpha",
-        "descricao": "Sistema para gerenciamento de atividades escolares",
-        "turma": "DSM4",
-        "tlr": "1",
-        "cea": "1",
-        "area_atuacao": "Educação",
-        "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-        "imagens_projeto": [
-            "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-            "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-        ],
-        "ods": [
-            {
-                "id": 1,
-                "nome": "ODS 1 - Erradicação da Pobreza"
-            }
-        ],
-        "linhas_extensao": [
-            {
-                "id": 1,
-                "nome": "Tecnologia e Inovação"
-            }
-        ],
-        "areas_tematicas": [
-            {
-                "id": 1,
-                "nome": "Tecnologia da Informação"
-            }
-        ],
-        "integrantes": [
-            {
-                "nome": "João Silva",
-                "funcao": "Desenvolvedor Backend"
-            }
-        ],
-        "status": "ativo",
-        "created_at": "2024-04-03T10:00:00Z"
+        "id": "string",
+        "nome_projeto": "string",
+        "nome_equipe": "string",
+        "tlr": "string",
+        "turma": "string",
+        "descricao": "string",
+        "cea": "string",
+        "area_atuacao": "string",
+        "imagem_capa": "string",
+        "imagens": ["string"],
+        "qr_code": "string"
     }
 }
 ```
@@ -325,21 +184,17 @@ Resposta:
     "success": true,
     "data": [
         {
-            "id": 1,
-            "nome_Projeto": "Sistema de Gestão Escolar",
-            "nome_equipe": "Equipe Alpha",
-            "descricao": "Sistema para gerenciamento de atividades escolares",
-            "turma": "DSM4",
-            "tlr": "1",
-            "cea": "1",
-            "area_atuacao": "Educação",
-            "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-            "imagens_projeto": [
-                "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-                "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-            ],
-            "status": "ativo",
-            "created_at": "2024-04-03T10:00:00Z"
+            "id": "string",
+            "nome_projeto": "string",
+            "nome_equipe": "string",
+            "tlr": "string",
+            "turma": "string",
+            "descricao": "string",
+            "cea": "string",
+            "area_atuacao": "string",
+            "imagem_capa": "string",
+            "imagens": ["string"],
+            "qr_code": "string"
         }
     ]
 }
@@ -353,30 +208,26 @@ Authorization: Bearer seu_token_jwt_aqui
 
 {
     "dados": {
-        "id": 1,
-        "nome_Projeto": "Sistema de Gestão Escolar 2.0",
-        "nome_equipe": "Equipe Alpha",
-        "descricao": "Sistema aprimorado para gerenciamento de atividades escolares",
-        "turma": "DSM4",
-        "tlr": "1",
-        "cea": "1",
-        "area_atuacao": "Educação",
-        "ods_ids": [1, 2, 3],
-        "linha_extensao_ids": [1, 2],
-        "area_tematica_ids": [1],
+        "id": "string",
+        "nome_projeto": "string",
+        "nome_equipe": "string",
+        "tlr": "string",
+        "turma": "string",
+        "descricao": "string",
+        "cea": "string",
+        "area_atuacao": "string",
+        "ods_ids": ["string"],
+        "linha_extensao_ids": ["string"],
+        "area_tematica_ids": ["string"],
         "integrantes": [
             {
-                "nome": "João Silva",
-                "funcao": "Desenvolvedor Full Stack"
-            },
-            {
-                "nome": "Maria Santos",
-                "funcao": "Desenvolvedora Frontend"
+                "nome": "string",
+                "funcao": "string"
             }
         ]
     },
-    "imagem_capa": [arquivo],
-    "imagens_projeto": [arquivo1, arquivo2]
+    "imagem_capa": "file (opcional)",
+    "imagens_projeto": ["file"] (opcional)
 }
 ```
 
@@ -386,45 +237,41 @@ Resposta:
     "success": true,
     "message": "Projeto atualizado com sucesso",
     "data": {
-        "id": 1,
-        "nome_Projeto": "Sistema de Gestão Escolar 2.0",
-        "nome_equipe": "Equipe Alpha",
-        "descricao": "Sistema aprimorado para gerenciamento de atividades escolares",
-        "turma": "DSM4",
-        "tlr": "1",
-        "cea": "1",
-        "area_atuacao": "Educação",
-        "imagem_capa": "/imgs/projetos/capas/123456789.jpg",
-        "imagens_projeto": [
-            "/imgs/projetos/Imagens_Projeto/987654321.jpg",
-            "/imgs/projetos/Imagens_Projeto/456789123.jpg"
-        ],
+        "id": "string",
+        "nome_projeto": "string",
+        "nome_equipe": "string",
+        "tlr": "string",
+        "turma": "string",
+        "descricao": "string",
+        "cea": "string",
+        "area_atuacao": "string",
+        "imagem_capa": "string",
+        "imagens_projeto": ["string"],
         "ods": [
             {
-                "id": 1,
-                "nome": "ODS 1 - Erradicação da Pobreza"
+                "id": "string",
+                "nome": "string"
             }
         ],
         "linhas_extensao": [
             {
-                "id": 1,
-                "nome": "Tecnologia e Inovação"
+                "id": "string",
+                "nome": "string"
             }
         ],
         "areas_tematicas": [
             {
-                "id": 1,
-                "nome": "Tecnologia da Informação"
+                "id": "string",
+                "nome": "string"
             }
         ],
         "integrantes": [
             {
-                "nome": "João Silva",
-                "funcao": "Desenvolvedor Full Stack"
+                "nome": "string",
+                "funcao": "string"
             }
         ],
-        "status": "ativo",
-        "updated_at": "2024-04-03T12:00:00Z"
+        "qr_code": "string"
     }
 }
 ```
@@ -436,7 +283,7 @@ Content-Type: application/json
 Authorization: Bearer seu_token_jwt_aqui
 
 {
-    "id": 1
+    "id": "string"
 }
 ```
 
@@ -446,7 +293,7 @@ Resposta:
     "success": true,
     "message": "Projeto desativado com sucesso",
     "data": {
-        "id": 1,
+        "id": "string",
         "status": "inativo",
         "updated_at": "2024-04-03T13:00:00Z"
     }
@@ -455,23 +302,17 @@ Resposta:
 
 ## Estrutura de Dados
 Os projetos possuem as seguintes informações:
-- `id`: Identificador único
-- `nome_Projeto`: Nome do projeto (único)
+- `id_projeto`: Identificador único do projeto
+- `nome_projeto`: Nome do projeto
 - `nome_equipe`: Nome da equipe
-- `descricao`: Descrição detalhada
-- `turma`: Turma responsável
 - `tlr`: Indicador de Tecnologia, Liderança e Responsabilidade
+- `imagem_capa`: URL da imagem de capa
+- `turma`: Turma responsável
+- `descricao`: Descrição detalhada
 - `cea`: Indicador de Criatividade, Empreendedorismo e Aprendizagem
 - `area_atuacao`: Área de atuação
-- `imagem_capa`: URL da imagem de capa
-- `imagens_projeto`: Lista de URLs das imagens do projeto
-- `ods`: Lista de Objetivos de Desenvolvimento Sustentável
-- `linhas_extensao`: Lista de Linhas de Extensão
-- `areas_tematicas`: Lista de Áreas Temáticas
-- `integrantes`: Lista de integrantes da equipe
-- `status`: Status do projeto (ativo/inativo)
-- `created_at`: Data de criação
-- `updated_at`: Data de atualização
+- `qr_code`: URL do QR Code do projeto
+- `ativo`: Status do projeto (ativo/inativo)
 
 ## Segurança
 - Validação de dados antes do cadastro
@@ -479,7 +320,6 @@ Os projetos possuem as seguintes informações:
 - Proteção contra dados inválidos ou maliciosos
 - Validação de tipos e tamanhos de arquivos
 - Controle de acesso baseado em permissões
-- Validação de relacionamentos (ODS, Linhas de Extensão, Áreas Temáticas)
 
 ## Integração
 O módulo de Projetos está integrado com:
@@ -487,6 +327,4 @@ O módulo de Projetos está integrado com:
 - Módulo de Candidatos
 - Sistema de exibição pública (Vitrine)
 - Sistema de gerenciamento de turmas
-- Sistema de ODS
-- Sistema de Linhas de Extensão
-- Sistema de Áreas Temáticas 
+- Sistema de geração de QR Codes 

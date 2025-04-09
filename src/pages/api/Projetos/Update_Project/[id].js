@@ -1,44 +1,9 @@
-import conectar_banco from '@/config/database';
-import multer from 'multer';
+import { IncomingForm } from 'formidable';
+import fs from 'fs/promises';
 import path from 'path';
-import fs from 'fs';
+import conectar_banco from '@/config/database';
 import authMiddleware from '../../../../middleware/authMiddleware';
-
-// Configuração do Multer
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: function (req, file, cb) {
-      // Define o destino baseado no campo do arquivo
-      const pasta = file.fieldname === 'imagem_capa' ? 
-        './public/imgs/projetos/capas' : 
-        './public/imgs/projetos/Imagens_Projeto';
-      
-      // Cria o diretório se não existir
-      if (!fs.existsSync(pasta)){
-        fs.mkdirSync(pasta, { recursive: true });
-      }
-      
-      cb(null, pasta);
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Buffer.from(file.originalname).toString('hex');
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-  })
-});
-
-// Função para processar o upload
-const processarUpload = (req, res) => {
-  return new Promise((resolve, reject) => {
-    upload.fields([
-      { name: 'imagem_capa', maxCount: 1 },
-      { name: 'imagens_projeto', maxCount: 10 }
-    ])(req, res, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-};
+import { generateQRCode } from '../../../../utils/qrCodeGenerator';
 
 export const config = {
   api: {
@@ -47,266 +12,138 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  // Aplicando o middleware de autenticação
-  authMiddleware(req, res, async () => {
-    if (req.method !== 'PUT') {
-      return res.status(405).json({ erro: 'Método não permitido' });
+  if (req.method !== 'PUT') {
+    return res.status(405).json({ mensagem: 'Método não permitido' });
+  }
+
+  try {
+    // Verificar autenticação
+    const auth = await authMiddleware(req, res);
+    if (!auth.success) {
+      return res.status(401).json({ mensagem: auth.mensagem });
     }
 
-    try {
-      await processarUpload(req, res);
+    const { id } = req.query;
 
-      const { id } = req.query;
-      const dados = JSON.parse(req.body.dados);
-      const {
-        nome_Projeto,
-        nome_equipe,
-        tlr,
-        turma,
-        descricao,
-        cea,
-        area_atuacao,
-        ods,
-        linhas_extensao,
-        areas_tematicas,
-        integrantes
-      } = dados;
+    if (!id) {
+      return res.status(400).json({ mensagem: 'ID do projeto é obrigatório' });
+    }
 
-      // Verifica se foram enviadas novas imagens
-      const imagem_capa = req.files['imagem_capa'] ? 
-        req.files['imagem_capa'][0].filename : 
-        dados.imagem_capa;
+    const form = new IncomingForm();
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve([fields, files]);
+      });
+    });
 
-      const novas_imagens_projeto = req.files['imagens_projeto'] ? 
-        req.files['imagens_projeto'].map(file => file.filename) : 
-        [];
-
-      const imagens_projeto = [
-        ...(dados.imagens_projeto || []),
-        ...novas_imagens_projeto
-      ];
-
-      let db;
-      try {
-        db = conectar_banco();
-
-        // Inicia a transação
-        await new Promise((resolve, reject) => {
-          db.run('BEGIN TRANSACTION', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-
-        // 1. Atualiza a tabela principal de Projetos
-        await new Promise((resolve, reject) => {
-          const sql = `
-            UPDATE Projetos 
-            SET 
-              nome_Projeto = ?,
-              nome_equipe = ?,
-              tlr = ?,
-              imagem_capa = ?,
-              turma = ?,
-              descricao = ?,
-              cea = ?,
-              area_atuacao = ?
-            WHERE id = ?
-          `;
-
-          db.run(sql, [
-            nome_Projeto,
-            nome_equipe,
-            tlr,
-            imagem_capa,
-            turma,
-            descricao,
-            cea,
-            area_atuacao,
-            id
-          ], (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-
-        // 2. Atualiza ODS
-        if (ods && ods.length > 0) {
-          await new Promise((resolve, reject) => {
-            db.run('DELETE FROM ProjetoODS WHERE projeto_id = ?', [id], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          for (const ods_id of ods) {
-            await new Promise((resolve, reject) => {
-              db.run(
-                'INSERT INTO ProjetoODS (projeto_id, ods_id) VALUES (?, ?)',
-                [id, ods_id],
-                (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                }
-              );
-            });
-          }
-        }
-
-        // 3. Atualiza Linhas de Extensão
-        if (linhas_extensao && linhas_extensao.length > 0) {
-          await new Promise((resolve, reject) => {
-            db.run('DELETE FROM ProjetoLinhaExtensao WHERE projeto_id = ?', [id], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          for (const linha_id of linhas_extensao) {
-            await new Promise((resolve, reject) => {
-              db.run(
-                'INSERT INTO ProjetoLinhaExtensao (projeto_id, linha_extensao_id) VALUES (?, ?)',
-                [id, linha_id],
-                (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                }
-              );
-            });
-          }
-        }
-
-        // 4. Atualiza Áreas Temáticas
-        if (areas_tematicas && areas_tematicas.length > 0) {
-          await new Promise((resolve, reject) => {
-            db.run('DELETE FROM ProjetoAreaTematica WHERE projeto_id = ?', [id], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          for (const area_id of areas_tematicas) {
-            await new Promise((resolve, reject) => {
-              db.run(
-                'INSERT INTO ProjetoAreaTematica (projeto_id, area_tematica_id) VALUES (?, ?)',
-                [id, area_id],
-                (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                }
-              );
-            });
-          }
-        }
-
-        // 5. Atualiza Integrantes
-        if (integrantes && integrantes.length > 0) {
-          await new Promise((resolve, reject) => {
-            db.run('DELETE FROM IntegrantesEquipe WHERE projeto_id = ?', [id], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          for (const nome_integrante of integrantes) {
-            await new Promise((resolve, reject) => {
-              db.run(
-                'INSERT INTO IntegrantesEquipe (projeto_id, nome_integrante) VALUES (?, ?)',
-                [id, nome_integrante],
-                (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                }
-              );
-            });
-          }
-        }
-
-        // 6. Atualiza Imagens do Projeto
-        if (imagens_projeto && imagens_projeto.length > 0) {
-          // Busca imagens antigas para possível remoção
-          const imagens_antigas = await new Promise((resolve, reject) => {
-            db.all('SELECT imagem_url FROM ImagensProjeto WHERE projeto_id = ?', [id], (err, rows) => {
-              if (err) reject(err);
-              else resolve(rows.map(row => row.imagem_url));
-            });
-          });
-
-          // Remove imagens antigas que não estão mais na lista
-          const imagens_removidas = imagens_antigas.filter(img => !imagens_projeto.includes(img));
-          for (const img of imagens_removidas) {
-            const caminho = path.join('./public/uploads/', img);
-            if (fs.existsSync(caminho)) {
-              fs.unlinkSync(caminho);
-            }
-          }
-
-          // Atualiza registros no banco
-          await new Promise((resolve, reject) => {
-            db.run('DELETE FROM ImagensProjeto WHERE projeto_id = ?', [id], (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          for (const imagem_url of imagens_projeto) {
-            await new Promise((resolve, reject) => {
-              db.run(
-                'INSERT INTO ImagensProjeto (projeto_id, imagem_url) VALUES (?, ?)',
-                [id, imagem_url],
-                (err) => {
-                  if (err) reject(err);
-                  else resolve();
-                }
-              );
-            });
-          }
-        }
-
-        // Commit da transação
-        await new Promise((resolve, reject) => {
-          db.run('COMMIT', (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-
-        db.close();
-
-        return res.status(200).json({
-          mensagem: 'Projeto atualizado com sucesso',
-          projeto_id: id
-        });
-
-      } catch (erro) {
-        console.error('Erro ao atualizar projeto:', erro);
-        
-        // Rollback em caso de erro
-        if (db) {
-          await new Promise((resolve) => {
-            db.run('ROLLBACK', () => resolve());
-          });
-          db.close();
-        }
-
-        // Remove arquivos enviados em caso de erro
-        if (req.files) {
-          if (req.files['imagem_capa']) {
-            fs.unlinkSync(path.join('./public/projetos/capas', req.files['imagem_capa'][0].filename));
-          }
-          if (req.files['imagens_projeto']) {
-            req.files['imagens_projeto'].forEach(file => {
-              fs.unlinkSync(path.join('./public/projetos/Imagens_Projeto', file.filename));
-            });
-          }
-        }
-
-        return res.status(500).json({ erro: 'Erro ao atualizar projeto' });
+    // Validar campos obrigatórios
+    const camposObrigatorios = ['nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
+    for (const campo of camposObrigatorios) {
+      if (!fields[campo]) {
+        return res.status(400).json({ mensagem: `Campo ${campo} é obrigatório` });
       }
-
-    } catch (erro) {
-      console.error('Erro ao processar upload:', erro);
-      return res.status(500).json({ erro: 'Erro ao processar upload de arquivos' });
     }
-  });
+
+    const db = await conectar_banco();
+
+    // Verificar se o projeto existe
+    const projeto = await db.get('SELECT * FROM Projetos WHERE id = ?', [id]);
+    if (!projeto) {
+      return res.status(404).json({ mensagem: 'Projeto não encontrado' });
+    }
+
+    // Processar imagem de capa
+    let imagemCapaUrl = projeto.imagem_capa;
+    if (files.imagem_capa) {
+      const file = files.imagem_capa[0];
+      const ext = path.extname(file.originalFilename);
+      const fileName = `${id}${ext}`;
+      const filePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capas', fileName);
+      
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await fs.copyFile(file.filepath, filePath);
+      imagemCapaUrl = `/imgs/projetos/capas/${fileName}`;
+    }
+
+    // Atualizar projeto no banco
+    await db.run(`
+      UPDATE Projetos SET
+        nome_projeto = ?,
+        nome_equipe = ?,
+        tlr = ?,
+        turma = ?,
+        descricao = ?,
+        cea = ?,
+        area_atuacao = ?,
+        imagem_capa = ?
+      WHERE id = ?
+    `, [
+      fields.nome_projeto,
+      fields.nome_equipe,
+      fields.tlr,
+      fields.turma,
+      fields.descricao,
+      fields.cea,
+      fields.area_atuacao,
+      imagemCapaUrl,
+      id
+    ]);
+
+    // Gerar novo QR Code se necessário
+    const qrCodePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'qrcodes', `${id}.png`);
+    const qrCodeUrl = `/imgs/projetos/qrcodes/${id}.png`;
+    const projectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/projetos/${id}`;
+    await generateQRCode(projectUrl, qrCodePath);
+
+    // Atualizar projeto com URL do QR Code
+    await db.run('UPDATE Projetos SET qr_code = ? WHERE id = ?', [qrCodeUrl, id]);
+
+    // Processar imagens adicionais
+    const imagensUrls = [];
+    if (files.imagens) {
+      // Remover imagens antigas
+      await db.run('DELETE FROM Imagens_Projeto WHERE id_projeto = ?', [id]);
+
+      for (const file of files.imagens) {
+        const ext = path.extname(file.originalFilename);
+        const fileName = `${crypto.randomUUID()}${ext}`;
+        const filePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'Imagens_Projeto', fileName);
+        
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.copyFile(file.filepath, filePath);
+        
+        const url = `/imgs/projetos/Imagens_Projeto/${fileName}`;
+        imagensUrls.push(url);
+        
+        await db.run(`
+          INSERT INTO Imagens_Projeto (id, id_projeto, url_imagem)
+          VALUES (?, ?, ?)
+        `, [crypto.randomUUID(), id, url]);
+      }
+    }
+
+    await db.close();
+
+    return res.status(200).json({
+      mensagem: 'Projeto atualizado com sucesso',
+      dados: {
+        id,
+        nome_projeto: fields.nome_projeto,
+        nome_equipe: fields.nome_equipe,
+        tlr: fields.tlr,
+        turma: fields.turma,
+        descricao: fields.descricao,
+        cea: fields.cea,
+        area_atuacao: fields.area_atuacao,
+        imagem_capa: imagemCapaUrl,
+        imagens: imagensUrls,
+        qr_code: qrCodeUrl
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao atualizar projeto:', error);
+    return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+  }
 }

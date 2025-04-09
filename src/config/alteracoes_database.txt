@@ -1,0 +1,20 @@
+-- Versão SQLite
+
+-- Tabela Projetos
+CREATE TABLE Projetos (
+    id_projeto INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome_projeto TEXT NOT NULL,
+    nome_equipe TEXT NOT NULL,
+    tlr INTEGER NOT NULL,
+    imagem_capa TEXT NOT NULL,
+    turma TEXT NOT NULL,
+    descricao TEXT NOT NULL,
+    cea INTEGER NOT NULL,
+    area_atuacao TEXT NOT NULL,
+    ativo BOOLEAN DEFAULT 1,
+    qr_code TEXT,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Adicionar coluna qr_code se não existir
+ALTER TABLE Projetos ADD COLUMN qr_code TEXT; 
