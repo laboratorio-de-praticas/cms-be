@@ -63,7 +63,6 @@ export default async function handler(req, res) {
       cea: projeto.cea,
       ativo: projeto.ativo === 1,
       area_atuacao: projeto.area_atuacao,
-      qr_code: projeto.qr_code,
       ods: projeto.ods_descricoes ? {
         ids: projeto.ods_ids?.split(',').map(Number) || [],
         descricoes: projeto.ods_descricoes?.split(',') || []

@@ -12,8 +12,34 @@ CREATE TABLE Projetos (
     cea INTEGER NOT NULL,
     area_atuacao TEXT NOT NULL,
     ativo BOOLEAN DEFAULT 1,
-    qr_code TEXT,
     data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela Eventos
+CREATE TABLE Eventos (
+    id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome_evento TEXT NOT NULL,
+    tipo_evento TEXT CHECK(tipo_evento IN ('interno', 'externo')) NOT NULL
+);
+
+-- Tabela de relacionamento entre Evento e Projeto
+CREATE TABLE EventoxProjeto (
+    id_evento INTEGER NOT NULL,
+    id_projeto INTEGER NOT NULL,
+    url_votacao TEXT,
+    PRIMARY KEY (id_evento, id_projeto),
+    FOREIGN KEY (id_evento) REFERENCES Eventos(id_evento),
+    FOREIGN KEY (id_projeto) REFERENCES Projetos(id_projeto)
+);
+
+-- Tabela de relacionamento entre Evento e Candidato
+CREATE TABLE EventoxCandidato (
+    id_evento INTEGER NOT NULL,
+    id_candidato INTEGER NOT NULL,
+    url_votacao TEXT,
+    PRIMARY KEY (id_evento, id_candidato),
+    FOREIGN KEY (id_evento) REFERENCES Eventos(id_evento),
+    FOREIGN KEY (id_candidato) REFERENCES Candidato(id_candidato)
 );
 
 -- Tabela ImagensProjeto
@@ -99,7 +125,6 @@ CREATE TABLE Candidato(
     turma_atual TEXT,
     deseja_ser_candidato BOOLEAN,
     descricao_campanha TEXT,
-    qr_code TEXT,
     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
 );
 
@@ -216,9 +241,11 @@ CREATE TABLE Projetos (
     cea INTEGER NOT NULL,
     area_atuacao TEXT NOT NULL,
     ativo BOOLEAN DEFAULT TRUE,
-    qr_code TEXT,
     data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
 
 -- Tabela ImagensProjeto
 CREATE TABLE ImagensProjeto (
@@ -303,7 +330,6 @@ CREATE TABLE Candidato (
     turma_atual TEXT,
     deseja_ser_candidato BOOLEAN,
     descricao_campanha TEXT,
-    qr_code TEXT,
     FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
 );
 
@@ -360,11 +386,6 @@ INSERT INTO AreaTematica (descricao) VALUES
 ('Cultura'),
 ('Direitos Humanos');
 
--- Adicionar coluna qr_code na tabela Projetos se não existir
-ALTER TABLE Projetos ADD COLUMN qr_code TEXT;
-
--- Adicionar coluna qr_code na tabela Candidato se não existir
-ALTER TABLE Candidato ADD COLUMN qr_code TEXT;
 
 -- Criar índices para melhorar performance
 CREATE INDEX IF NOT EXISTS idx_usuario_email ON Usuario(email_institucional);

@@ -459,8 +459,7 @@ export default async function handler(req, res) {
         curso: candidato_atualizado.curso,
         semestre: candidato_atualizado.semestre,
         ano_ingresso: candidato_atualizado.ano_ingresso,
-        status_candidatura: candidato_atualizado.status_candidatura,
-        qr_code: candidato_atualizado.status_candidatura === 'aprovado' ? candidato_atualizado.qr_code : null
+        status_candidatura: candidato_atualizado.status_candidatura
       }
     });
   } catch (erro) {

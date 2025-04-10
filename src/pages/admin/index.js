@@ -202,7 +202,6 @@ export default function Admin() {
                 <p>CEA: {projeto.cea}</p>
                 <p>Área de Atuação: {projeto.area_atuacao}</p>
                 <p>Descrição: {projeto.descricao}</p>
-                <p>QR Code: <img src={projeto.qr_code} alt="QR Code" /></p>
                 <hr />
               </div>
             ))
