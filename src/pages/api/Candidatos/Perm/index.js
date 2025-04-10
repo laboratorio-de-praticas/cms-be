@@ -1,7 +1,6 @@
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import fsSync from 'fs';
-import { generateQRCode } from '../../../../utils/qrCodeGenerator';
 
 const conectar_banco = () => {
   try {
@@ -87,36 +86,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ mensagem: "Apenas candidatos aprovados podem ter QR Code gerado" });
     }
 
-    // Gerar QR Code
-    const qrCodePath = `public/imgs/candidatos/qrcodes/${candidato.id}.png`;
-    const qrCodeUrl = `/imgs/candidatos/qrcodes/${candidato.id}.png`;
-    
-    await generateQRCode(
-      `https://seu-site.com/candidatos/${candidato.id}`,
-      qrCodePath
-    );
-
-    // Atualizar o QR Code no banco
-    await new Promise((resolve, reject) => {
-      db.run(
-        'UPDATE Candidatos SET qr_code = ? WHERE id = ?',
-        [qrCodeUrl, id],
-        (err) => {
-          if (err) {
-            console.error("Erro ao atualizar QR Code:", err);
-            reject(err);
-          }
-          resolve();
-        }
-      );
-    });
-
     db.close();
     console.log("Conexão com o banco fechada");
 
     return res.status(200).json({
-      mensagem: "QR Code gerado com sucesso!",
-      qr_code: qrCodeUrl
+      mensagem: "Status atualizado com sucesso!"
     });
 
   } catch (erro) {

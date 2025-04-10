@@ -3,7 +3,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import conectar_banco from '@/config/database';
 import authMiddleware from '../../../../middleware/authMiddleware';
-import { generateQRCode } from '../../../../utils/qrCodeGenerator';
 
 export const config = {
   api: {
@@ -13,22 +12,13 @@ export const config = {
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
-    return res.status(405).json({ mensagem: 'Método não permitido' });
+    return res.status(405).json({ erro: 'Método não permitido' });
   }
 
+  const { id } = req.query;
+  let db;
+
   try {
-    // Verificar autenticação
-    const auth = await authMiddleware(req, res);
-    if (!auth.success) {
-      return res.status(401).json({ mensagem: auth.mensagem });
-    }
-
-    const { id } = req.query;
-
-    if (!id) {
-      return res.status(400).json({ mensagem: 'ID do projeto é obrigatório' });
-    }
-
     const form = new IncomingForm();
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -37,33 +27,30 @@ export default async function handler(req, res) {
       });
     });
 
-    // Validar campos obrigatórios
+    // Validação dos campos obrigatórios
     const camposObrigatorios = ['nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
     for (const campo of camposObrigatorios) {
       if (!fields[campo]) {
-        return res.status(400).json({ mensagem: `Campo ${campo} é obrigatório` });
+        return res.status(400).json({ erro: `Campo ${campo} é obrigatório` });
       }
     }
 
-    const db = await conectar_banco();
-
-    // Verificar se o projeto existe
-    const projeto = await db.get('SELECT * FROM Projetos WHERE id = ?', [id]);
-    if (!projeto) {
-      return res.status(404).json({ mensagem: 'Projeto não encontrado' });
-    }
+    // Conectar ao banco de dados
+    db = await conectar_banco();
+    console.log('Banco de dados conectado');
 
     // Processar imagem de capa
-    let imagemCapaUrl = projeto.imagem_capa;
-    if (files.imagem_capa) {
-      const file = files.imagem_capa[0];
-      const ext = path.extname(file.originalFilename);
-      const fileName = `${id}${ext}`;
-      const filePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capas', fileName);
+    let imagemCapaUrl = null;
+    if (files.capa && files.capa[0]) {
+      const capa = files.capa[0];
+      const extensao = path.extname(capa.originalFilename);
+      const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
+      const caminhoArquivo = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capa', nomeArquivo);
       
-      await fs.mkdir(path.dirname(filePath), { recursive: true });
-      await fs.copyFile(file.filepath, filePath);
-      imagemCapaUrl = `/imgs/projetos/capas/${fileName}`;
+      await fs.mkdir(path.dirname(caminhoArquivo), { recursive: true });
+      await fs.copyFile(capa.filepath, caminhoArquivo);
+      
+      imagemCapaUrl = `/imgs/projetos/capa/${nomeArquivo}`;
     }
 
     // Atualizar projeto no banco
@@ -90,15 +77,6 @@ export default async function handler(req, res) {
       id
     ]);
 
-    // Gerar novo QR Code se necessário
-    const qrCodePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'qrcodes', `${id}.png`);
-    const qrCodeUrl = `/imgs/projetos/qrcodes/${id}.png`;
-    const projectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/projetos/${id}`;
-    await generateQRCode(projectUrl, qrCodePath);
-
-    // Atualizar projeto com URL do QR Code
-    await db.run('UPDATE Projetos SET qr_code = ? WHERE id = ?', [qrCodeUrl, id]);
-
     // Processar imagens adicionais
     const imagensUrls = [];
     if (files.imagens) {
@@ -124,10 +102,11 @@ export default async function handler(req, res) {
     }
 
     await db.close();
+    console.log('Conexão com o banco fechada');
 
     return res.status(200).json({
       mensagem: 'Projeto atualizado com sucesso',
-      dados: {
+      projeto: {
         id,
         nome_projeto: fields.nome_projeto,
         nome_equipe: fields.nome_equipe,
@@ -137,13 +116,21 @@ export default async function handler(req, res) {
         cea: fields.cea,
         area_atuacao: fields.area_atuacao,
         imagem_capa: imagemCapaUrl,
-        imagens: imagensUrls,
-        qr_code: qrCodeUrl
+        imagens: imagensUrls
       }
     });
 
   } catch (error) {
     console.error('Erro ao atualizar projeto:', error);
-    return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    return res.status(500).json({ 
+      erro: 'Erro interno do servidor',
+      detalhes: error.message 
+    });
+  } finally {
+    if (db) {
+      await db.close();
+    }
   }
 }
+
+export default authMiddleware(handler);

@@ -4,7 +4,6 @@ import path from 'path';
 import crypto from 'crypto';
 import conectar_banco from '@/config/database';
 import authMiddleware from '@/middleware/authMiddleware';
-import { generateQRCode } from '@/utils/qrCodeGenerator';
 
 // Configuração para permitir o parsing do form-data
 export const config = {
@@ -54,24 +53,12 @@ async function handler(req, res) {
       imagem_capa = `/imgs/projetos/capa/${nomeArquivo}`;
     }
 
-    // Gerar QR Code antes de inserir o projeto
-    const host = req.headers.host || 'localhost:3000';
-    const qrCodeData = `http://${host}/votacao/externa/confirmacao/1/${crypto.randomUUID()}`;
-    const qrCodePath = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'qrcodes', `${crypto.randomUUID()}.png`);
-    
-    // Garantir que o diretório existe
-    await fs.mkdir(path.dirname(qrCodePath), { recursive: true });
-    
-    await generateQRCode(qrCodeData, qrCodePath);
-    const qrCodeUrl = `/imgs/projetos/qrcodes/${path.basename(qrCodePath)}`;
-
-    // Inserir projeto no banco com o QR Code
     console.log('Iniciando inserção do projeto no banco');
     const stmt = await db.prepare(`
       INSERT INTO Projetos (
         nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-        descricao, cea, area_atuacao, qr_code
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        descricao, cea, area_atuacao
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     try {
@@ -83,8 +70,7 @@ async function handler(req, res) {
         fields.turma,
         fields.descricao,
         fields.cea,
-        fields.area_atuacao,
-        qrCodeUrl
+        fields.area_atuacao
       );
 
       await stmt.finalize();
@@ -131,11 +117,9 @@ async function handler(req, res) {
           nome_equipe: fields.nome_equipe,
           tlr: fields.tlr,
           turma: fields.turma,
-          descricao: fields.descricao,
           cea: fields.cea,
           area_atuacao: fields.area_atuacao,
           imagem_capa,
-          qr_code: qrCodeUrl
         }
       });
 
