@@ -16,8 +16,8 @@ export default async function handler(req, res) {
   }
 
   const db = conectar_banco();
-  const candidato = await new Promise((resolve, reject) => {
-    db.get('SELECT * FROM Candidatos WHERE email_institucional = ?', [email_institucional], (err, row) => {
+  const usuario = await new Promise((resolve, reject) => {
+    db.get('SELECT * FROM Usuario WHERE email_institucional = ?', [email_institucional], (err, row) => {
       if (err) {
         return reject(err);
       }
@@ -25,17 +25,17 @@ export default async function handler(req, res) {
     });
   });
 
-  if (!candidato) {
+  if (!usuario) {
     return res.status(401).json({ erro: 'Credenciais inválidas' });
   }
 
-  const senhaValida = await bcrypt.compare(senha, candidato.senha);
+  const senhaValida = await bcrypt.compare(senha, usuario.senha);
   if (!senhaValida) {
     return res.status(401).json({ erro: 'Credenciais inválidas' });
   }
 
-  const token = jwt.sign({ id: candidato.id, email_institucional: candidato.email_institucional }, SECRET_KEY, {
-    expiresIn: '1h', // O token expira em 1 hora
+  const token = jwt.sign({ id: usuario.id_usuario, email_institucional: usuario.email_institucional }, SECRET_KEY, {
+    expiresIn: '5h', // O token expira em 1 hora
   });
 
   return res.status(200).json({ token });

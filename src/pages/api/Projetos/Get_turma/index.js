@@ -1,17 +1,18 @@
 import conectar_banco from '@/config/database';
-import authMiddleware from '../../../../middleware/authMiddleware';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
+  let db;
   try {
     // Verificar autenticação
-    const auth = await authMiddleware(req, res);
-    if (!auth.success) {
-      return res.status(401).json({ mensagem: auth.mensagem });
-    }
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
 
     const { turma } = req.query;
 
@@ -19,37 +20,46 @@ export default async function handler(req, res) {
       return res.status(400).json({ mensagem: 'Turma é obrigatória' });
     }
 
-    const db = await conectar_banco();
+    db = await conectar_banco();
 
     // Busca projetos da turma com todas as relações
-    const projetos = await db.all(`
-      SELECT 
-        p.*,
-        GROUP_CONCAT(DISTINCT o.descricao) as ods_descricoes,
-        GROUP_CONCAT(DISTINCT o.id) as ods_ids,
-        GROUP_CONCAT(DISTINCT le.descricao) as linhas_extensao_descricoes,
-        GROUP_CONCAT(DISTINCT le.id) as linhas_extensao_ids,
-        GROUP_CONCAT(DISTINCT at.descricao) as areas_tematicas_descricoes,
-        GROUP_CONCAT(DISTINCT at.id) as areas_tematicas_ids,
-        GROUP_CONCAT(DISTINCT ie.nome_integrante) as integrantes,
-        GROUP_CONCAT(DISTINCT ip.url_imagem) as imagens_projeto
-      FROM Projetos p
-      LEFT JOIN ProjetoODS po ON p.id = po.projeto_id
-      LEFT JOIN ODS o ON po.ods_id = o.id
-      LEFT JOIN ProjetoLinhaExtensao ple ON p.id = ple.projeto_id
-      LEFT JOIN LinhaExtensao le ON ple.linha_extensao_id = le.id
-      LEFT JOIN ProjetoAreaTematica pat ON p.id = pat.projeto_id
-      LEFT JOIN AreaTematica at ON pat.area_tematica_id = at.id
-      LEFT JOIN IntegrantesEquipe ie ON p.id = ie.projeto_id
-      LEFT JOIN Imagens_Projeto ip ON p.id = ip.id_projeto
-      WHERE p.turma = ? AND p.ativo = 1
-      GROUP BY p.id
-      ORDER BY p.id DESC
-    `, [turma]);
+    const projetos = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT 
+          p.*,
+          GROUP_CONCAT(DISTINCT o.descricao) as ods_descricoes,
+          GROUP_CONCAT(DISTINCT o.id_ods) as ods_ids,
+          GROUP_CONCAT(DISTINCT le.descricao) as linhas_extensao_descricoes,
+          GROUP_CONCAT(DISTINCT le.id_linha) as linhas_extensao_ids,
+          GROUP_CONCAT(DISTINCT at.descricao) as areas_tematicas_descricoes,
+          GROUP_CONCAT(DISTINCT at.id_area) as areas_tematicas_ids,
+          GROUP_CONCAT(DISTINCT u.nome) as integrantes,
+          GROUP_CONCAT(DISTINCT ip.imagem_url) as imagens_projeto
+        FROM Projetos p
+        LEFT JOIN ProjetoODS po ON p.id_projeto = po.projeto_id
+        LEFT JOIN ODS o ON po.ods_id = o.id_ods
+        LEFT JOIN ProjetoLinhaExtensao ple ON p.id_projeto = ple.projeto_id
+        LEFT JOIN LinhaExtensao le ON ple.linha_extensao_id = le.id_linha
+        LEFT JOIN ProjetoAreaTematica pat ON p.id_projeto = pat.projeto_id
+        LEFT JOIN AreaTematica at ON pat.area_tematica_id = at.id_area
+        LEFT JOIN IntegrantesEquipe ie ON p.id_projeto = ie.projeto_id
+        LEFT JOIN Usuario u ON ie.usuario_id = u.id_usuario
+        LEFT JOIN ImagensProjeto ip ON p.id_projeto = ip.projeto_id
+        WHERE p.turma = ? AND p.ativo = 1
+        GROUP BY p.id_projeto
+        ORDER BY p.id_projeto DESC
+      `, [turma], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
 
     // Processa os resultados
     const projetos_formatados = projetos.map(projeto => ({
-      id: projeto.id,
+      id: projeto.id_projeto,
       nome_projeto: projeto.nome_projeto,
       nome_equipe: projeto.nome_equipe,
       tlr: projeto.tlr,
@@ -76,8 +86,6 @@ export default async function handler(req, res) {
       imagens: projeto.imagens_projeto ? projeto.imagens_projeto.split(',') : []
     }));
 
-    await db.close();
-
     return res.status(200).json({
       mensagem: 'Projetos da turma recuperados com sucesso',
       projetos: projetos_formatados
@@ -85,6 +93,26 @@ export default async function handler(req, res) {
 
   } catch (erro) {
     console.error('Erro ao buscar projetos da turma:', erro);
-    return res.status(500).json({ mensagem: 'Erro interno do servidor' });
+    return res.status(500).json({ 
+      mensagem: 'Erro interno do servidor',
+      erro: erro.message 
+    });
+  } finally {
+    if (db) {
+      try {
+        await new Promise((resolve, reject) => {
+          db.close((err) => {
+            if (err) {
+              console.error('Erro ao fechar conexão com o banco:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      } catch (erro) {
+        console.error('Erro ao fechar conexão com o banco:', erro);
+      }
+    }
   }
 }
