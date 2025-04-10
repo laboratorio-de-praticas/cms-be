@@ -38,13 +38,13 @@ const conectar_banco = () => {
           return res.status(404).json({ erro: 'Visitante não encontrado' });
         }
   
-        if (!Visitante.Status) {
-          return res.status(400).json({ erro: 'Visitante já está desativado' });
+        if (Visitante.Status) {
+          return res.status(400).json({ erro: 'Visitante já está Ativado' });
         }
-  
+ 
         await new Promise((resolve, reject) => {
           db.run(
-            'UPDATE Visitantes SET Status = false WHERE id = ?',
+            'UPDATE Visitantes SET Status = True WHERE id = ?',
             [id],
             (err) => {
               if (err) reject(err);
@@ -56,18 +56,18 @@ const conectar_banco = () => {
         db.close();
   
         return res.status(200).json({ 
-          mensagem: 'Visitante desativado com sucesso',
+          mensagem: 'Visitante ativado com sucesso',
           projeto_id: id 
         });
   
       } catch (erro) {
-        console.error('Erro ao desativar Visitante:', erro);
+        console.error('Erro ao ativar Visitante:', erro);
         
         if (db) {
           db.close();
         }
   
-        return res.status(500).json({ erro: 'Erro ao desativar Visitante' });
+        return res.status(500).json({ erro: 'Erro ao ativar Visitante' });
       }
     ;
   }
