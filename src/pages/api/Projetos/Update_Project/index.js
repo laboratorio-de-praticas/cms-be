@@ -4,7 +4,6 @@ import path from 'path';
 import crypto from 'crypto';
 import conectar_banco from '@/config/database';
 
-
 // Configuração para permitir o parsing do form-data
 export const config = {
   api: {
@@ -13,7 +12,7 @@ export const config = {
 };
 
 async function handler(req, res) {
-  if (req.method !== 'POST') {
+  if (req.method !== 'PUT') {
     return res.status(405).json({ erro: 'Método não permitido' });
   }
 
@@ -34,7 +33,7 @@ async function handler(req, res) {
     };
 
     // Validação dos campos obrigatórios
-    const camposObrigatorios = ['nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
+    const camposObrigatorios = ['id_projeto', 'nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
     for (const campo of camposObrigatorios) {
       const valor = getFieldValue(campo);
       if (!valor || valor.trim() === '') {
@@ -46,70 +45,77 @@ async function handler(req, res) {
     db = await conectar_banco();
     console.log('Banco de dados conectado');
 
-    // Processar imagem de capa
-    let imagem_capa = '/imgs/projetos/capa/padrao.png';
-    if (files.capa && files.capa[0]) {
-      const capa = files.capa[0];
-      const extensao = path.extname(capa.originalFilename);
-      const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
-      const caminhoArquivo = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capa', nomeArquivo);
-      
-      await fs.mkdir(path.dirname(caminhoArquivo), { recursive: true });
-      await fs.copyFile(capa.filepath, caminhoArquivo);
-      
-      imagem_capa = `/imgs/projetos/capa/${nomeArquivo}`;
+    // Verificar se o projeto existe
+    const projetoExistente = await db.get(
+      'SELECT * FROM Projetos WHERE id_projeto = ?',
+      [getFieldValue('id_projeto')]
+    );
+
+    if (!projetoExistente) {
+      return res.status(404).json({ erro: 'Projeto não encontrado' });
     }
 
-
-    console.log('Iniciando inserção do projeto no banco');
-    const stmt = await db.prepare(`
-      INSERT INTO Projetos (
-        nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-        descricao, cea, area_atuacao
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    // Iniciar transação
+    await db.run('BEGIN TRANSACTION');
 
     try {
-      // Inserir projeto no banco com o QR Code
-      console.log('Iniciando inserção do projeto no banco');
+      // Processar imagem de capa
+      let imagem_capa = projetoExistente.imagem_capa;
+      if (files.capa && files.capa[0]) {
+        const capa = files.capa[0];
+        const extensao = path.extname(capa.originalFilename);
+        const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
+        const caminhoArquivo = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capa', nomeArquivo);
+        
+        await fs.mkdir(path.dirname(caminhoArquivo), { recursive: true });
+        await fs.copyFile(capa.filepath, caminhoArquivo);
+        
+        imagem_capa = `/imgs/projetos/capa/${nomeArquivo}`;
+
+        // Remover imagem antiga se existir e não for a padrão
+        if (projetoExistente.imagem_capa && projetoExistente.imagem_capa !== '/imgs/projetos/capa/padrao.png') {
+          const caminhoAntigo = path.join(process.cwd(), 'public', projetoExistente.imagem_capa);
+          try {
+            await fs.unlink(caminhoAntigo);
+          } catch (error) {
+            console.error('Erro ao remover imagem antiga:', error);
+          }
+        }
+      }
+
+      // Atualizar projeto
       const stmt = await db.prepare(`
-        INSERT INTO Projetos (
-          nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-          descricao, cea, area_atuacao, qr_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        UPDATE Projetos SET
+          nome_projeto = ?,
+          nome_equipe = ?,
+          tlr = ?,
+          imagem_capa = ?,
+          turma = ?,
+          descricao = ?,
+          cea = ?,
+          area_atuacao = ?
+        WHERE id_projeto = ?
       `);
 
-      const result = await stmt.run(
+      await stmt.run(
         getFieldValue('nome_projeto').trim(),
         getFieldValue('nome_equipe').trim(),
         parseInt(getFieldValue('tlr')),
         imagem_capa,
-
-        fields.turma,
-        fields.descricao,
-        fields.cea,
-        fields.area_atuacao
+        getFieldValue('turma').trim(),
+        getFieldValue('descricao').trim(),
+        parseInt(getFieldValue('cea')),
+        getFieldValue('area_atuacao').trim(),
+        parseInt(getFieldValue('id_projeto'))
       );
 
       await stmt.finalize();
-      console.log('Projeto inserido com sucesso:', result);
-
-      // Obter o ID do projeto inserido
-      const id_projeto = await new Promise((resolve, reject) => {
-        db.get('SELECT last_insert_rowid() as id', (err, row) => {
-          if (err) reject(err);
-          resolve(row.id);
-        });
-      });
-
-      console.log('ID do projeto:', id_projeto);
-
-      if (!id_projeto) {
-        throw new Error('Não foi possível obter o ID do projeto inserido');
-      }
 
       // Processar imagens adicionais
       if (files.imagens && files.imagens.length > 0) {
+        // Remover imagens antigas
+        await db.run('DELETE FROM ImagensProjeto WHERE projeto_id = ?', [getFieldValue('id_projeto')]);
+
         for (const imagem of files.imagens) {
           const extensao = path.extname(imagem.originalFilename);
           const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
@@ -121,7 +127,7 @@ async function handler(req, res) {
           const imagemUrl = `/imgs/projetos/imagens/${nomeArquivo}`;
           await db.run(
             'INSERT INTO ImagensProjeto (projeto_id, imagem_url) VALUES (?, ?)',
-            [id_projeto, imagemUrl]
+            [getFieldValue('id_projeto'), imagemUrl]
           );
         }
       }
@@ -129,11 +135,12 @@ async function handler(req, res) {
       // Processar ODS
       const odsIds = getFieldValue('ods_ids');
       if (odsIds) {
+        await db.run('DELETE FROM ProjetoODS WHERE projeto_id = ?', [getFieldValue('id_projeto')]);
         const odsArray = JSON.parse(odsIds);
         for (const odsId of odsArray) {
           await db.run(
             'INSERT INTO ProjetoODS (projeto_id, ods_id) VALUES (?, ?)',
-            [id_projeto, odsId]
+            [getFieldValue('id_projeto'), odsId]
           );
         }
       }
@@ -141,11 +148,12 @@ async function handler(req, res) {
       // Processar Linhas de Extensão
       const linhaIds = getFieldValue('linhas_extensao_ids');
       if (linhaIds) {
+        await db.run('DELETE FROM ProjetoLinhaExtensao WHERE projeto_id = ?', [getFieldValue('id_projeto')]);
         const linhaArray = JSON.parse(linhaIds);
         for (const linhaId of linhaArray) {
           await db.run(
             'INSERT INTO ProjetoLinhaExtensao (projeto_id, linha_extensao_id) VALUES (?, ?)',
-            [id_projeto, linhaId]
+            [getFieldValue('id_projeto'), linhaId]
           );
         }
       }
@@ -153,11 +161,12 @@ async function handler(req, res) {
       // Processar Áreas Temáticas
       const areaIds = getFieldValue('areas_tematicas_ids');
       if (areaIds) {
+        await db.run('DELETE FROM ProjetoAreaTematica WHERE projeto_id = ?', [getFieldValue('id_projeto')]);
         const areaArray = JSON.parse(areaIds);
         for (const areaId of areaArray) {
           await db.run(
             'INSERT INTO ProjetoAreaTematica (projeto_id, area_tematica_id) VALUES (?, ?)',
-            [id_projeto, areaId]
+            [getFieldValue('id_projeto'), areaId]
           );
         }
       }
@@ -165,11 +174,12 @@ async function handler(req, res) {
       // Processar Integrantes
       const integranteIds = getFieldValue('integrantes_ids');
       if (integranteIds) {
+        await db.run('DELETE FROM IntegrantesEquipe WHERE projeto_id = ?', [getFieldValue('id_projeto')]);
         const integranteArray = JSON.parse(integranteIds);
         for (const integranteId of integranteArray) {
           await db.run(
             'INSERT INTO IntegrantesEquipe (projeto_id, usuario_id) VALUES (?, ?)',
-            [id_projeto, integranteId]
+            [getFieldValue('id_projeto'), integranteId]
           );
         }
       }
@@ -177,43 +187,36 @@ async function handler(req, res) {
       // Commit da transação
       await db.run('COMMIT');
 
-      // Buscar o projeto inserido para confirmar
-      const projetoInserido = await db.get(
+      // Buscar o projeto atualizado
+      const projetoAtualizado = await db.get(
         'SELECT * FROM Projetos WHERE id_projeto = ?',
-        [id_projeto]
+        [getFieldValue('id_projeto')]
       );
 
-      if (!projetoInserido) {
-        throw new Error('Projeto não foi encontrado após inserção');
-      }
-
-      console.log('Projeto confirmado no banco:', projetoInserido);
-
-      return res.status(201).json({
-        mensagem: 'Projeto criado com sucesso',
+      return res.status(200).json({
+        mensagem: 'Projeto atualizado com sucesso',
         projeto: {
-          id_projeto,
-          nome_projeto: getFieldValue('nome_projeto').trim(),
-          nome_equipe: getFieldValue('nome_equipe').trim(),
-          tlr: parseInt(getFieldValue('tlr')),
-          turma: getFieldValue('turma').trim(),
-          descricao: getFieldValue('descricao').trim(),
-          cea: parseInt(getFieldValue('cea')),
-          area_atuacao: getFieldValue('area_atuacao').trim(),
-
-          imagem_capa,
+          id_projeto: projetoAtualizado.id_projeto,
+          nome_projeto: projetoAtualizado.nome_projeto,
+          nome_equipe: projetoAtualizado.nome_equipe,
+          tlr: projetoAtualizado.tlr,
+          turma: projetoAtualizado.turma,
+          descricao: projetoAtualizado.descricao,
+          cea: projetoAtualizado.cea,
+          area_atuacao: projetoAtualizado.area_atuacao,
+          imagem_capa: projetoAtualizado.imagem_capa
         }
       });
 
     } catch (error) {
       // Rollback em caso de erro
       await db.run('ROLLBACK');
-      console.error('Erro ao inserir projeto:', error);
+      console.error('Erro ao atualizar projeto:', error);
       throw error;
     }
 
   } catch (error) {
-    console.error('Erro ao criar projeto:', error);
+    console.error('Erro ao atualizar projeto:', error);
     return res.status(500).json({ 
       erro: 'Erro interno do servidor',
       detalhes: error.message 
@@ -226,4 +229,4 @@ async function handler(req, res) {
   }
 }
 
-export default handler;
+export default handler; 

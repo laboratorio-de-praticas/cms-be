@@ -1,16 +1,22 @@
 import conectar_banco from '@/config/database';
-import authMiddleware from '@/middleware/authMiddleware';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ erro: 'Método não permitido' });
+    return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
   let db;
   try {
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
     db = await conectar_banco();
 
-    // Busca projetos com todas as relações
+    // Busca todos os projetos com suas relações
     const projetos = await new Promise((resolve, reject) => {
       db.all(`
         SELECT 
@@ -50,13 +56,12 @@ async function handler(req, res) {
       nome_projeto: projeto.nome_projeto,
       nome_equipe: projeto.nome_equipe,
       tlr: projeto.tlr,
-      capa: projeto.imagem_capa,
+      imagem_capa: projeto.imagem_capa,
       turma: projeto.turma,
       descricao: projeto.descricao,
       cea: projeto.cea,
       ativo: projeto.ativo === 1,
       area_atuacao: projeto.area_atuacao,
-      qr_code: projeto.qr_code,
       ods: projeto.ods_descricoes ? {
         ids: projeto.ods_ids?.split(',').map(Number) || [],
         descricoes: projeto.ods_descricoes?.split(',') || []
@@ -81,14 +86,25 @@ async function handler(req, res) {
   } catch (erro) {
     console.error('Erro ao buscar projetos:', erro);
     return res.status(500).json({ 
-      erro: 'Erro interno do servidor',
-      detalhes: erro.message 
+      mensagem: 'Erro interno do servidor',
+      erro: erro.message 
     });
   } finally {
     if (db) {
-      db.close();
+      try {
+        await new Promise((resolve, reject) => {
+          db.close((err) => {
+            if (err) {
+              console.error('Erro ao fechar conexão com o banco:', err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      } catch (erro) {
+        console.error('Erro ao fechar conexão com o banco:', erro);
+      }
     }
   }
 }
-
-export default authMiddleware(handler);
