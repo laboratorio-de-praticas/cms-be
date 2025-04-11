@@ -1,13 +1,19 @@
 import conectar_banco from '@/config/database';
-import authMiddleware from '@/middleware/authMiddleware';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ erro: 'Método não permitido' });
+    return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
   let db;
   try {
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
     const { id_evento, id_candidato } = req.body;
 
     // Validação dos campos obrigatórios
@@ -101,6 +107,4 @@ async function handler(req, res) {
       console.log('Conexão com o banco fechada');
     }
   }
-}
-
-export default authMiddleware(handler); 
+} 

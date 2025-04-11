@@ -3,6 +3,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import conectar_banco from '@/config/database';
+import generateQRCode from '../../../../utils/qrCodeGenerator';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
 
 // Configuração para permitir o parsing do form-data
@@ -12,13 +14,19 @@ export const config = {
   },
 };
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ erro: 'Método não permitido' });
+    return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
   let db;
   try {
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
     const form = new IncomingForm();
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -225,5 +233,3 @@ async function handler(req, res) {
     }
   }
 }
-
-export default handler;

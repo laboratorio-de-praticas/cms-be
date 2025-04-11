@@ -1,6 +1,14 @@
+import { IncomingForm } from 'formidable';
+import { promises as fs } from 'fs';
+import path from 'path';
 import conectar_banco from '@/config/database';
-import generateQRCode from '../../../../utils/qrCodeGenerator';
 // import authMiddleware from '../../../../middleware/authMiddleware';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
@@ -15,7 +23,7 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    const { id_usuario } = req.body;
+    const form = new IncomingForm();
     // ... existing code ...
   } catch (error) {
     console.error('Erro ao processar a requisição:', error);

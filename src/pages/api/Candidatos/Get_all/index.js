@@ -1,13 +1,20 @@
-const conectar_banco = require('@/config/database');
+import conectar_banco from '@/config/database';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ erro: 'Método não permitido' });
+    return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
   let db;
   try {
-    db = conectar_banco();
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
+    db = await conectar_banco();
 
     const candidatos = await new Promise((resolve, reject) => {
       db.all(

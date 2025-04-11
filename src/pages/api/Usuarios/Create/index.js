@@ -1,9 +1,9 @@
 import { IncomingForm } from 'formidable';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 import path from 'path';
 import bcryptjs from 'bcryptjs';
 import conectar_banco from '@/config/database';
-import { generateQRCode } from '../../../../utils/qrCodeGenerator';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
 export const config = {
   api: {
@@ -16,7 +16,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
+  let db;
   try {
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
     const form = new IncomingForm();
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -45,15 +52,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ mensagem: 'Email institucional inválido' });
     }
 
-    const db = await conectar_banco();
+    db = await conectar_banco();
 
     // Verificar se o email já está em uso
     const emailExistente = await db.get(
-      'SELECT id FROM Usuario WHERE email_institucional = ?',
+      'SELECT id_usuario FROM Usuario WHERE email_institucional = ?',
       [fields.email_institucional]
     );
     if (emailExistente) {
-      return res.status(400).json({ mensagem: 'Email institucional já está em uso' });
+      return res.status(400).json({ erro: 'Email institucional já está em uso' });
     }
 
     // Processar foto do usuário
@@ -73,13 +80,13 @@ export default async function handler(req, res) {
     const senhaHash = await bcryptjs.hash(fields.senha, 10);
 
     // Inserir usuário no banco
-    const id = crypto.randomUUID();
+    const id_usuario = crypto.randomUUID();
     await db.run(`
       INSERT INTO Usuario (
-        id, nome, email_institucional, senha, tipo_usuario, foto
+        id_usuario, nome, email_institucional, senha, tipo_usuario, foto
       ) VALUES (?, ?, ?, ?, ?, ?)
     `, [
-      id,
+      id_usuario,
       fields.nome,
       fields.email_institucional,
       senhaHash,
@@ -92,17 +99,17 @@ export default async function handler(req, res) {
       const camposAluno = ['ra', 'turma', 'curso'];
       for (const campo of camposAluno) {
         if (!fields[campo]) {
-          return res.status(400).json({ mensagem: `Campo ${campo} é obrigatório para alunos` });
+          return res.status(400).json({ erro: `Campo ${campo} é obrigatório para alunos` });
         }
       }
 
       await db.run(`
         INSERT INTO Candidato (
-          id, id_usuario, ra, turma, curso
+          id_candidato, id_usuario, ra, turma, curso
         ) VALUES (?, ?, ?, ?, ?)
       `, [
         crypto.randomUUID(),
-        id,
+        id_usuario,
         fields.ra,
         fields.turma,
         fields.curso
@@ -114,7 +121,7 @@ export default async function handler(req, res) {
     return res.status(201).json({
       mensagem: 'Usuário criado com sucesso',
       dados: {
-        id,
+        id_usuario,
         nome: fields.nome,
         email_institucional: fields.email_institucional,
         tipo_usuario: fields.tipo_usuario,

@@ -1,330 +1,154 @@
-# Documentação - Módulo de Projetos
+# Módulo de Projetos
 
 ## Visão Geral
-Este módulo gerencia o cadastro e visualização de projetos, incluindo a geração automática de QR Codes para cada projeto.
+O módulo de Projetos gerencia todas as operações relacionadas aos projetos, incluindo criação, atualização, exclusão e consulta. Cada projeto pode ter múltiplas imagens, estar associado a ODS, Linhas de Extensão e Áreas Temáticas, e possui um QR Code único.
 
-## Funcionalidades
+## Endpoints
 
-### 1. Cadastro de Projetos
-- Permite o cadastro de novos projetos
-- Upload de fotos e materiais relacionados
-- Associação com equipe responsável
-- Categorização por turma/curso
-- Validação de dados obrigatórios
-- Geração automática de QR Code para cada projeto
-
-### 2. Gerenciamento de Projetos
-- Visualização de todos os projetos cadastrados
-- Edição de informações dos projetos
-- Ativação/desativação de projetos
-- Filtros por turma e status
-- Busca por projetos específicos
-
-## Autenticação
-
-Para acessar as rotas protegidas do módulo de Projetos, é necessário realizar o login e obter um token JWT. Este token deve ser incluído no cabeçalho `Authorization` de cada requisição para as rotas que requerem autenticação.
-
-### Login
-Para obter o token, você deve fazer uma requisição ao endpoint de login:
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-    "email": "seu_email@fatec.sp.gov.br",
-    "senha": "sua_senha"
-}
+### 1. Listar Todos os Projetos
 ```
-
-Resposta esperada:
-```json
-{
-    "success": true,
-    "token": "seu_token_jwt_aqui"
-}
-```
-
-### Uso do Token
-Após obter o token, você deve incluí-lo nas requisições para as rotas protegidas. O formato do cabeçalho deve ser:
-
-Authorization: Bearer seu_token_jwt_aqui
-
-### 3. API Endpoints
-
-#### Criar Projeto
-```http
-POST /api/Projetos/Create
-Content-Type: multipart/form-data
-Authorization: Bearer seu_token_jwt_aqui
-
-{
-    "nome_projeto": "string",
-    "nome_equipe": "string",
-    "tlr": "string",
-    "turma": "string",
-    "descricao": "string",
-    "cea": "string",
-    "area_atuacao": "string",
-    "imagem_capa": "file (opcional)",
-    "imagens": ["file"] (opcional)
-}
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "message": "Projeto criado com sucesso",
-    "data": {
-        "id": "string",
-        "nome_projeto": "string",
-        "nome_equipe": "string",
-        "tlr": "string",
-        "turma": "string",
-        "descricao": "string",
-        "cea": "string",
-        "area_atuacao": "string",
-        "imagem_capa": "string",
-        "imagens": ["string"],
-        "qr_code": "string"
-    }
-}
-```
-
-#### Listar Todos os Projetos
-```http
 GET /api/Projetos/Get_all
-Authorization: Bearer seu_token_jwt_aqui
 ```
-
-Resposta:
+- Retorna todos os projetos ativos
+- Inclui informações sobre ODS, Linhas de Extensão, Áreas Temáticas e imagens
+- Resposta:
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "id": "string",
-            "nome_projeto": "string",
-            "nome_equipe": "string",
-            "tlr": "string",
-            "turma": "string",
-            "descricao": "string",
-            "cea": "string",
-            "area_atuacao": "string",
-            "imagem_capa": "string",
-            "imagens": ["string"],
-            "qr_code": "string"
-        }
-    ]
-}
-```
-
-#### Listar Projetos Ativos
-```http
-GET /api/Projetos/Get_active
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "data": [
-        {
-            "id": "string",
-            "nome_projeto": "string",
-            "nome_equipe": "string",
-            "tlr": "string",
-            "turma": "string",
-            "descricao": "string",
-            "cea": "string",
-            "area_atuacao": "string",
-            "imagem_capa": "string",
-            "imagens": ["string"],
-            "qr_code": "string"
-        }
-    ]
-}
-```
-
-#### Buscar Projeto por ID
-```http
-GET /api/Projetos/Get_id?id=1
-Authorization: Bearer seu_token_jwt_aqui
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "data": {
-        "id": "string",
-        "nome_projeto": "string",
-        "nome_equipe": "string",
-        "tlr": "string",
-        "turma": "string",
-        "descricao": "string",
-        "cea": "string",
-        "area_atuacao": "string",
-        "imagem_capa": "string",
-        "imagens": ["string"],
-        "qr_code": "string"
+  "mensagem": "Projetos recuperados com sucesso",
+  "projetos": [
+    {
+      "id": "uuid",
+      "nome_projeto": "string",
+      "nome_equipe": "string",
+      "tlr": "string",
+      "imagem_capa": "string",
+      "turma": "string",
+      "descricao": "string",
+      "cea": "string",
+      "ativo": boolean,
+      "area_atuacao": "string",
+      "qr_code": "string",
+      "ods": {
+        "ids": [number],
+        "descricoes": [string]
+      },
+      "linhas_extensao": {
+        "ids": [number],
+        "descricoes": [string]
+      },
+      "areas_tematicas": {
+        "ids": [number],
+        "descricoes": [string]
+      },
+      "integrantes": [string],
+      "imagens": [string]
     }
+  ]
 }
 ```
 
-#### Buscar Projetos por Turma
-```http
-GET /api/Projetos/Get_turma?turma=DSM4
+### 2. Buscar Projeto por ID
 ```
+GET /api/Projetos/Get_id?id=uuid
+```
+- Retorna os detalhes de um projeto específico
+- Parâmetros:
+  - id (obrigatório): UUID do projeto
+- Resposta: Mesmo formato do Get_all, mas para um único projeto
 
-Resposta:
+### 3. Buscar Projetos por Turma
+```
+GET /api/Projetos/Get_turma?turma=string
+```
+- Retorna todos os projetos de uma turma específica
+- Parâmetros:
+  - turma (obrigatório): Nome da turma
+- Resposta: Mesmo formato do Get_all
+
+### 4. Criar Projeto
+```
+POST /api/Projetos/Create
+```
+- Cria um novo projeto
+- Body (form-data):
+  - nome_projeto (obrigatório): string
+  - nome_equipe (obrigatório): string
+  - tlr (obrigatório): string
+  - turma (obrigatório): string
+  - descricao (obrigatório): string
+  - cea (obrigatório): string
+  - area_atuacao (obrigatório): string
+  - capa: arquivo de imagem
+  - imagens: múltiplos arquivos de imagem
+  - ods_ids: string (array JSON)
+  - linhas_extensao_ids: string (array JSON)
+  - areas_tematicas_ids: string (array JSON)
+  - integrantes_ids: string (array JSON)
+- Resposta:
 ```json
 {
-    "success": true,
-    "data": [
-        {
-            "id": "string",
-            "nome_projeto": "string",
-            "nome_equipe": "string",
-            "tlr": "string",
-            "turma": "string",
-            "descricao": "string",
-            "cea": "string",
-            "area_atuacao": "string",
-            "imagem_capa": "string",
-            "imagens": ["string"],
-            "qr_code": "string"
-        }
-    ]
+  "mensagem": "Projeto criado com sucesso",
+  "projeto": {
+    "id": "uuid",
+    "nome_projeto": "string",
+    "qr_code": "string",
+    // ... outros campos do projeto
+  }
 }
 ```
 
-#### Atualizar Projeto
-```http
-PUT /api/Projetos/Update_Project
-Content-Type: multipart/form-data
-Authorization: Bearer seu_token_jwt_aqui
-
-{
-    "dados": {
-        "id": "string",
-        "nome_projeto": "string",
-        "nome_equipe": "string",
-        "tlr": "string",
-        "turma": "string",
-        "descricao": "string",
-        "cea": "string",
-        "area_atuacao": "string",
-        "ods_ids": ["string"],
-        "linha_extensao_ids": ["string"],
-        "area_tematica_ids": ["string"],
-        "integrantes": [
-            {
-                "nome": "string",
-                "funcao": "string"
-            }
-        ]
-    },
-    "imagem_capa": "file (opcional)",
-    "imagens_projeto": ["file"] (opcional)
-}
+### 5. Atualizar Projeto
 ```
+PUT /api/Projetos/Update?id=uuid
+```
+- Atualiza um projeto existente
+- Parâmetros:
+  - id (obrigatório): UUID do projeto
+- Body (form-data): Mesmos campos da criação, mas todos opcionais
+- Resposta: Mesmo formato da criação
 
-Resposta:
+### 6. Deletar Projeto
+```
+DELETE /api/Projetos/Delete?id=uuid
+```
+- Marca um projeto como inativo
+- Parâmetros:
+  - id (obrigatório): UUID do projeto
+- Resposta:
 ```json
 {
-    "success": true,
-    "message": "Projeto atualizado com sucesso",
-    "data": {
-        "id": "string",
-        "nome_projeto": "string",
-        "nome_equipe": "string",
-        "tlr": "string",
-        "turma": "string",
-        "descricao": "string",
-        "cea": "string",
-        "area_atuacao": "string",
-        "imagem_capa": "string",
-        "imagens_projeto": ["string"],
-        "ods": [
-            {
-                "id": "string",
-                "nome": "string"
-            }
-        ],
-        "linhas_extensao": [
-            {
-                "id": "string",
-                "nome": "string"
-            }
-        ],
-        "areas_tematicas": [
-            {
-                "id": "string",
-                "nome": "string"
-            }
-        ],
-        "integrantes": [
-            {
-                "nome": "string",
-                "funcao": "string"
-            }
-        ],
-        "qr_code": "string"
-    }
-}
-```
-
-#### Desativar Projeto
-```http
-PUT /api/Projetos/Disable
-Content-Type: application/json
-Authorization: Bearer seu_token_jwt_aqui
-
-{
-    "id": "string"
-}
-```
-
-Resposta:
-```json
-{
-    "success": true,
-    "message": "Projeto desativado com sucesso",
-    "data": {
-        "id": "string",
-        "status": "inativo",
-        "updated_at": "2024-04-03T13:00:00Z"
-    }
+  "mensagem": "Projeto deletado com sucesso"
 }
 ```
 
 ## Estrutura de Dados
-Os projetos possuem as seguintes informações:
-- `id_projeto`: Identificador único do projeto
-- `nome_projeto`: Nome do projeto
-- `nome_equipe`: Nome da equipe
-- `tlr`: Indicador de Tecnologia, Liderança e Responsabilidade
-- `imagem_capa`: URL da imagem de capa
-- `turma`: Turma responsável
-- `descricao`: Descrição detalhada
-- `cea`: Indicador de Criatividade, Empreendedorismo e Aprendizagem
-- `area_atuacao`: Área de atuação
-- `qr_code`: URL do QR Code do projeto
-- `ativo`: Status do projeto (ativo/inativo)
 
-## Segurança
-- Validação de dados antes do cadastro
-- Verificação de permissões para operações de edição/exclusão
-- Proteção contra dados inválidos ou maliciosos
-- Validação de tipos e tamanhos de arquivos
-- Controle de acesso baseado em permissões
+### Tabela Projetos
+```sql
+CREATE TABLE Projetos (
+  id_projeto TEXT PRIMARY KEY,
+  nome_projeto TEXT NOT NULL,
+  nome_equipe TEXT NOT NULL,
+  tlr TEXT NOT NULL,
+  imagem_capa TEXT,
+  turma TEXT NOT NULL,
+  descricao TEXT NOT NULL,
+  cea TEXT NOT NULL,
+  ativo INTEGER DEFAULT 1,
+  area_atuacao TEXT NOT NULL,
+  qr_code TEXT
+);
+```
 
-## Integração
-O módulo de Projetos está integrado com:
-- Sistema de autenticação
-- Módulo de Candidatos
-- Sistema de exibição pública (Vitrine)
-- Sistema de gerenciamento de turmas
-- Sistema de geração de QR Codes 
+### Tabelas Relacionadas
+- ProjetoODS
+- ProjetoLinhaExtensao
+- ProjetoAreaTematica
+- ImagensProjeto
+- IntegrantesEquipe
+
+## Observações
+- Todos os endpoints retornam status 200 em caso de sucesso
+- Em caso de erro, retornam status 400, 401, 404 ou 500 com mensagem de erro
+- As imagens são salvas no diretório `public/imgs/projetos/`
+- Os QR Codes são gerados automaticamente e salvos em `public/imgs/projetos/qrcodes/` 

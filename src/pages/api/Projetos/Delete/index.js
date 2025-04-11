@@ -1,9 +1,8 @@
 import conectar_banco from '@/config/database';
-import generateQRCode from '../../../../utils/qrCodeGenerator';
 // import authMiddleware from '../../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
-  if (req.method !== 'PUT') {
+  if (req.method !== 'DELETE') {
     return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
@@ -15,10 +14,9 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    const { id_usuario } = req.body;
+    const { id } = req.query;
     // ... existing code ...
   } catch (error) {
-    console.error('Erro ao processar a requisição:', error);
-    return res.status(500).json({ mensagem: 'Erro ao processar a requisição' });
+    // ... existing error handling code ...
   }
 } 

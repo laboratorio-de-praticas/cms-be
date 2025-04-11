@@ -1,19 +1,25 @@
 import conectar_banco from '@/config/database';
-import authMiddleware from '@/middleware/authMiddleware';
+// import authMiddleware from '../../../../middleware/authMiddleware';
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ erro: 'Método não permitido' });
-  }
-
-  const { id_evento } = req.query;
-
-  if (!id_evento) {
-    return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+    return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
   let db;
   try {
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ mensagem: auth.mensagem });
+    // }
+
+    const { id_evento } = req.query;
+
+    if (!id_evento) {
+      return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+    }
+
     // Conectar ao banco de dados
     db = await conectar_banco();
     console.log('Banco de dados conectado');
@@ -69,6 +75,4 @@ async function handler(req, res) {
       console.log('Conexão com o banco fechada');
     }
   }
-}
-
-export default authMiddleware(handler); 
+} 

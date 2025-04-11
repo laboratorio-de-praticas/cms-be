@@ -1,5 +1,12 @@
+import { IncomingForm } from 'formidable';
 import conectar_banco from '@/config/database';
-import authMiddleware from '@/middleware/authMiddleware';
+// import authMiddleware from '../../../../middleware/authMiddleware';
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,86 +15,67 @@ export default async function handler(req, res) {
 
   let db;
   try {
-    const { nome_evento, descricao, data_inicio, data_fim, local } = req.body;
+    // Verificar autenticação
+    // const auth = await authMiddleware(req, res);
+    // if (!auth.success) {
+    //   return res.status(401).json({ erro: auth.mensagem });
+    // }
+
+    const form = new IncomingForm();
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        resolve([fields, files]);
+      });
+    });
 
     // Validação dos campos obrigatórios
-    if (!nome_evento || !descricao || !data_inicio || !data_fim || !local) {
-      return res.status(400).json({ 
-        erro: 'Campos obrigatórios faltando',
-        campos_faltando: {
-          nome_evento: !nome_evento,
-          descricao: !descricao,
-          data_inicio: !data_inicio,
-          data_fim: !data_fim,
-          local: !local
-        }
-      });
+    const camposObrigatorios = ['nome_evento', 'descricao', 'data_inicio', 'data_fim', 'local'];
+    for (const campo of camposObrigatorios) {
+      if (!fields[campo]) {
+        return res.status(400).json({ erro: `Campo ${campo} é obrigatório` });
+      }
     }
 
-    // Validação das datas
-    const inicio = new Date(data_inicio);
-    const fim = new Date(data_fim);
-    
-    if (inicio >= fim) {
-      return res.status(400).json({ 
-        erro: 'Data de início deve ser anterior à data de fim' 
-      });
+    // Validar datas
+    const dataInicio = new Date(fields.data_inicio);
+    const dataFim = new Date(fields.data_fim);
+    if (dataInicio >= dataFim) {
+      return res.status(400).json({ erro: 'Data de início deve ser anterior à data de fim' });
     }
 
-    // Conectar ao banco de dados
     db = await conectar_banco();
-    console.log('Banco de dados conectado');
 
     // Inserir evento no banco
-    const stmt = await db.prepare(`
+    const id = crypto.randomUUID();
+    await db.run(`
       INSERT INTO Eventos (
-        nome_evento, descricao, data_inicio, data_fim, local
-      ) VALUES (?, ?, ?, ?, ?)
-    `);
+        id, nome_evento, descricao, data_inicio, data_fim, local, ativo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [
+      id,
+      fields.nome_evento,
+      fields.descricao,
+      fields.data_inicio,
+      fields.data_fim,
+      fields.local,
+      true
+    ]);
 
-    try {
-      const result = await stmt.run(
-        nome_evento,
-        descricao,
-        data_inicio,
-        data_fim,
-        local
-      );
+    await db.close();
 
-      await stmt.finalize();
-      console.log('Evento inserido com sucesso:', result);
-
-      const id_evento = result.lastID;
-      console.log('ID do evento:', id_evento);
-
-      // Buscar o evento inserido para confirmar
-      const eventoInserido = await db.get(
-        'SELECT * FROM Eventos WHERE id_evento = ?',
-        [id_evento]
-      );
-
-      if (!eventoInserido) {
-        throw new Error('Evento não foi encontrado após inserção');
+    return res.status(201).json({
+      mensagem: 'Evento criado com sucesso',
+      evento: {
+        id_evento: id,
+        nome_evento: fields.nome_evento,
+        descricao: fields.descricao,
+        data_inicio: fields.data_inicio,
+        data_fim: fields.data_fim,
+        local: fields.local,
+        ativo: true
       }
-
-      console.log('Evento confirmado no banco:', eventoInserido);
-
-      return res.status(201).json({
-        mensagem: 'Evento criado com sucesso',
-        evento: {
-          id_evento,
-          nome_evento,
-          descricao,
-          data_inicio,
-          data_fim,
-          local
-        }
-      });
-
-    } catch (error) {
-      console.error('Erro ao inserir evento:', error);
-      throw error;
-    }
+    });
 
   } catch (error) {
     console.error('Erro ao criar evento:', error);
@@ -95,12 +83,5 @@ export default async function handler(req, res) {
       erro: 'Erro interno do servidor',
       detalhes: error.message 
     });
-  } finally {
-    if (db) {
-      await db.close();
-      console.log('Conexão com o banco fechada');
-    }
   }
-}
-
-export default authMiddleware(handler); 
+} 
