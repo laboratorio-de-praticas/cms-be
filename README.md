@@ -1,92 +1,296 @@
-# CMS - Sistema de Gerenciamento de Conteúdo
+# CMS - Sistema de Gerenciamento de Eventos
 
-## Visão Geral
-O CMS é um sistema de gerenciamento de conteúdo desenvolvido para gerenciar projetos, eventos e candidatos. O sistema permite o cadastro e gerenciamento de projetos acadêmicos, organização de eventos e controle de candidaturas para representantes de turma.
-
-## Tecnologias Utilizadas
-- Next.js
-- SQLite
-- JWT para autenticação
-- QR Code para identificação de candidatos
-- Multer para upload de arquivos
+Sistema de gerenciamento de eventos acadêmicos com funcionalidades para projetos e candidatos.
 
 ## Estrutura do Projeto
+
 ```
 src/
 ├── pages/
-│   ├── api/
-│   │   ├── Projetos/     # Módulo de gerenciamento de projetos
-│   │   ├── Eventos/      # Módulo de gerenciamento de eventos
-│   │   ├── Candidatos/   # Módulo de gerenciamento de candidatos
-│   │   └── Usuarios/     # Módulo de autenticação e usuários
-│   └── public/
-│       ├── imgs/         # Diretório para imagens
-│       └── qrcodes/      # Diretório para QR Codes
+│   └── api/
+│       ├── Candidatos/
+│       │   ├── Aprovar/
+│       │   ├── Create/
+│       │   ├── Delete/
+│       │   ├── Get_all/
+│       │   ├── Get_id/
+│       │   └── Update/
+│       ├── Eventos/
+│       │   ├── Add_Candidato/
+│       │   ├── Add_Project/
+│       │   ├── Create/
+│       │   ├── Delete/
+│       │   ├── Get_all/
+│       │   ├── Get_id/
+│       │   └── Update/
+│       └── Projetos/
+│           ├── Create/
+│           ├── Delete/
+│           ├── Get_all/
+│           ├── Get_id/
+│           └── Update/
+├── config/
+│   └── database.js
+└── middleware/
+    └── authMiddleware.js
 ```
 
-## Módulos Principais
+## Rotas da API
 
-### 1. Projetos
-- Gerenciamento completo de projetos acadêmicos
-- Upload de imagens
-- Associação com ODS, Linhas de Extensão e Áreas Temáticas
-- Geração de QR Code para cada projeto
-- [Documentação detalhada](src/pages/api/Projetos/README.md)
+### Candidatos
 
-### 2. Eventos
-- Criação e gerenciamento de eventos
-- Associação de projetos e candidatos
-- Controle de datas e locais
-- [Documentação detalhada](src/pages/api/Eventos/README.md)
+#### GET /api/Candidatos/Get_all
+- Lista todos os candidatos
+- Retorna: Array de candidatos com seus dados
 
-### 3. Candidatos
-- Cadastro e aprovação de candidatos
-- Geração de QR Code para identificação
-- Integração com o módulo de usuários
-- [Documentação detalhada](src/pages/api/Candidatos/README.md)
+#### GET /api/Candidatos/Get_id?id_candidato={id}
+- Busca um candidato específico
+- Parâmetros:
+  - id_candidato: ID do candidato
+- Retorna: Dados do candidato
 
-### 4. Usuários
-- Autenticação e autorização
-- Diferentes tipos de usuários (aluno, professor, admin)
-- Upload de fotos de perfil
-- [Documentação detalhada](src/pages/api/Usuarios/README.md)
+#### POST /api/Candidatos/Create
+- Cria um novo candidato
+- Body:
+  ```json
+  {
+    "ra": "string",
+    "nome": "string",
+    "email_institucional": "string",
+    "telefone": "string",
+    "senha": "string",
+    "turma_atual": "string",
+    "deseja_ser_candidato": boolean,
+    "descricao_campanha": "string",
+    "foto": "file"
+  }
+  ```
 
-## Instalação e Execução
+#### PUT /api/Candidatos/Update
+- Atualiza um candidato existente
+- Body:
+  ```json
+  {
+    "id_candidato": number,
+    "id_usuario": number,
+    "ra": "string",
+    "nome": "string",
+    "email_institucional": "string",
+    "telefone": "string",
+    "senha": "string",
+    "turma_atual": "string",
+    "deseja_ser_candidato": boolean,
+    "descricao_campanha": "string",
+    "foto": "file"
+  }
+  ```
 
-### Pré-requisitos
-- Node.js (versão 14 ou superior)
-- npm ou yarn
+#### DELETE /api/Candidatos/Delete?id_candidato={id}
+- Remove um candidato
+- Parâmetros:
+  - id_candidato: ID do candidato
 
-### Passos para Instalação
+#### PUT /api/Candidatos/Aprovar
+- Aprova ou reprova um candidato
+- Body:
+  ```json
+  {
+    "id_candidato": number,
+    "acao": "aprovar" | "reprovar"
+  }
+  ```
+
+### Eventos
+
+#### GET /api/Eventos/Get_all
+- Lista todos os eventos
+- Retorna: Array de eventos com seus dados
+
+#### GET /api/Eventos/Get_id?id_evento={id}
+- Busca um evento específico
+- Parâmetros:
+  - id_evento: ID do evento
+- Retorna: Dados do evento, projetos e candidatos associados
+
+#### POST /api/Eventos/Create
+- Cria um novo evento
+- Body:
+  ```json
+  {
+    "nome_evento": "string",
+    "tipo_evento": "string",
+    "descricao": "string",
+    "data_inicio": "string",
+    "data_fim": "string",
+    "ativo": boolean
+  }
+  ```
+
+#### PUT /api/Eventos/Update
+- Atualiza um evento existente
+- Body:
+  ```json
+  {
+    "id_evento": number,
+    "nome_evento": "string",
+    "tipo_evento": "string",
+    "descricao": "string",
+    "data_inicio": "string",
+    "data_fim": "string",
+    "ativo": boolean
+  }
+  ```
+
+#### DELETE /api/Eventos/Delete?id_evento={id}
+- Remove um evento
+- Parâmetros:
+  - id_evento: ID do evento
+
+#### POST /api/Eventos/Add_Project
+- Adiciona um projeto a um evento
+- Body:
+  ```json
+  {
+    "id_evento": number,
+    "id_projeto": number
+  }
+  ```
+
+#### POST /api/Eventos/Add_Candidato
+- Adiciona um candidato a um evento
+- Body:
+  ```json
+  {
+    "id_evento": number,
+    "id_candidato": number
+  }
+  ```
+
+### Projetos
+
+#### GET /api/Projetos/Get_all
+- Lista todos os projetos
+- Retorna: Array de projetos com seus dados
+
+#### GET /api/Projetos/Get_id?id_projeto={id}
+- Busca um projeto específico
+- Parâmetros:
+  - id_projeto: ID do projeto
+- Retorna: Dados do projeto
+
+#### POST /api/Projetos/Create
+- Cria um novo projeto
+- Body:
+  ```json
+  {
+    "nome_projeto": "string",
+    "descricao": "string",
+    "area": "string",
+    "status": "string",
+    "foto": "file"
+  }
+  ```
+
+#### PUT /api/Projetos/Update
+- Atualiza um projeto existente
+- Body:
+  ```json
+  {
+    "id_projeto": number,
+    "nome_projeto": "string",
+    "descricao": "string",
+    "area": "string",
+    "status": "string",
+    "foto": "file"
+  }
+  ```
+
+#### DELETE /api/Projetos/Delete?id_projeto={id}
+- Remove um projeto
+- Parâmetros:
+  - id_projeto: ID do projeto
+
+## Estrutura do Banco de Dados
+
+### Tabelas Principais
+
+#### Usuario
+- id_usuario (PK)
+- nome
+- email_institucional
+- senha
+- tipo_usuario
+- foto
+- telefone
+- ativo
+
+#### Candidato
+- id_candidato (PK)
+- id_usuario (FK)
+- ra
+- turma_atual
+- deseja_ser_candidato
+- descricao_campanha
+
+#### Eventos
+- id_evento (PK)
+- nome_evento
+- tipo_evento
+- descricao
+- data_inicio
+- data_fim
+- ativo
+
+#### Projetos
+- id_projeto (PK)
+- nome_projeto
+- descricao
+- area
+- status
+- foto
+
+#### EventoxProjeto
+- id_evento (FK)
+- id_projeto (FK)
+- url_votacao
+
+#### EventoxCandidato
+- id_evento (FK)
+- id_candidato (FK)
+- url_votacao
+
+## Requisitos
+
+- Node.js
+- SQLite3
+- Dependências listadas no package.json
+
+## Instalação
+
 1. Clone o repositório
 2. Instale as dependências:
-```bash
-npm install
-# ou
-yarn install
-```
+   ```bash
+   npm install
+   ```
+3. Configure o banco de dados SQLite
+4. Inicie o servidor:
+   ```bash
+   npm run dev
+   ```
 
-3. Configure as variáveis de ambiente:
-```bash
-cp .env.example .env.local
-# Edite o arquivo .env.local com suas configurações
-```
+## Segurança
 
-4. Execute o projeto:
-```bash
-npm run dev
-# ou
-yarn dev
-```
-
-## Testando a API
-Para testar os endpoints da API, você pode usar o Postman ou qualquer outro cliente HTTP. Consulte a documentação específica de cada módulo para detalhes sobre os endpoints disponíveis.
+- Todas as rotas estão protegidas por autenticação (comentada no momento)
+- Senhas são armazenadas com hash
+- Validação de dados em todas as entradas
+- Transações para operações críticas
 
 ## Contribuição
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
 5. Abra um Pull Request
 
 ## Licença
