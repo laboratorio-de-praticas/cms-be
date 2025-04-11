@@ -17,19 +17,60 @@ export default async function handler(req, res) {
     db = await conectar_banco();
     console.log('Banco de dados conectado');
 
-    // Buscar todos os eventos ativos
-    const eventos = await db.all(`
-      SELECT 
-        e.*,
-        COUNT(DISTINCT ep.id_projeto) as total_projetos,
-        COUNT(DISTINCT ec.id_candidato) as total_candidatos
-      FROM Eventos e
-      LEFT JOIN EventoProjeto ep ON e.id_evento = ep.id_evento
-      LEFT JOIN EventoCandidato ec ON e.id_evento = ec.id_evento
-      WHERE e.ativo = 1
-      GROUP BY e.id_evento
-      ORDER BY e.data_inicio DESC
-    `);
+    // Buscar todos os eventos usando uma Promise
+    const eventos = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT 
+          e.id_evento,
+          e.nome_evento,
+          e.tipo_evento
+        FROM Eventos e
+        ORDER BY e.id_evento DESC
+      `, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows || []);
+        }
+      });
+    });
+
+    // Se não houver eventos, retornar array vazio
+    if (!eventos || eventos.length === 0) {
+      return res.status(200).json({
+        eventos: [],
+        total: 0
+      });
+    }
+
+    // Para cada evento, buscar a contagem de projetos e candidatos
+    for (let evento of eventos) {
+      const [projetos, candidatos] = await Promise.all([
+        new Promise((resolve, reject) => {
+          db.get(`
+            SELECT COUNT(*) as total 
+            FROM EventoxProjeto 
+            WHERE id_evento = ?
+          `, [evento.id_evento], (err, row) => {
+            if (err) reject(err);
+            else resolve(row || { total: 0 });
+          });
+        }),
+        new Promise((resolve, reject) => {
+          db.get(`
+            SELECT COUNT(*) as total 
+            FROM EventoxCandidato 
+            WHERE id_evento = ?
+          `, [evento.id_evento], (err, row) => {
+            if (err) reject(err);
+            else resolve(row || { total: 0 });
+          });
+        })
+      ]);
+
+      evento.total_projetos = projetos.total;
+      evento.total_candidatos = candidatos.total;
+    }
 
     return res.status(200).json({
       eventos,

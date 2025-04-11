@@ -10,13 +10,13 @@ async function handler(req, res) {
 
   let db;
   try {
-    const { id_usuario, acao } = req.body;
+    const { id_candidato, acao } = req.body;
 
-    if (!id_usuario || !acao) {
+    if (!id_candidato || !acao) {
       return res.status(400).json({ 
         erro: 'Campos obrigatórios faltando',
         campos_faltando: {
-          id_usuario: !id_usuario,
+          id_candidato: !id_candidato,
           acao: !acao
         }
       });
@@ -34,68 +34,100 @@ async function handler(req, res) {
     db = await conectar_banco();
     console.log('Banco de dados conectado');
 
-    // Verificar se o usuário existe e é um candidato
-    const usuario = await db.get(
-      'SELECT * FROM Usuario WHERE id_usuario = ?',
-      [id_usuario]
-    );
-
-    if (!usuario) {
-      return res.status(404).json({ erro: 'Usuário não encontrado' });
-    }
-
-    if (usuario.tipo_usuario !== 'aluno') {
-      return res.status(400).json({ erro: 'Apenas alunos podem ser candidatos' });
-    }
-
-    // Buscar o candidato
-    const candidato = await db.get(
-      'SELECT * FROM Candidatos WHERE id_usuario = ?',
-      [id_usuario]
-    );
-
-    if (!candidato) {
-      return res.status(404).json({ erro: 'Candidato não encontrado' });
-    }
-
     // Iniciar transação
     await db.run('BEGIN TRANSACTION');
 
     try {
+      // Verificar se o candidato existe
+      const candidato = await new Promise((resolve, reject) => {
+        db.get(`
+          SELECT c.*, u.* 
+          FROM Candidato c
+          JOIN Usuario u ON c.id_usuario = u.id_usuario
+          WHERE c.id_candidato = ?
+        `, [id_candidato], (err, row) => {
+          if (err) {
+            console.error('Erro ao verificar candidato:', err);
+            reject(err);
+          }
+          resolve(row);
+        });
+      });
+
+      if (!candidato) {
+        await db.run('ROLLBACK');
+        return res.status(404).json({ erro: 'Candidato não encontrado' });
+      }
+
+      if (candidato.tipo_usuario !== 'aluno') {
+        await db.run('ROLLBACK');
+        return res.status(400).json({ erro: 'Apenas alunos podem ser candidatos' });
+      }
+
       if (acao === 'aprovar') {
         // Buscar evento ativo
-        const evento = await db.get(
-          'SELECT * FROM Eventos WHERE ativo = 1 ORDER BY data_inicio DESC LIMIT 1'
-        );
+        const evento = await new Promise((resolve, reject) => {
+          db.get(`
+            SELECT id_evento, nome_evento 
+            FROM Eventos 
+            WHERE ativo = 1 
+            ORDER BY id_evento DESC 
+            LIMIT 1
+          `, (err, row) => {
+            if (err) {
+              console.error('Erro ao buscar evento ativo:', err);
+              reject(err);
+            }
+            resolve(row);
+          });
+        });
 
         if (!evento) {
+          await db.run('ROLLBACK');
           return res.status(404).json({ erro: 'Nenhum evento ativo encontrado' });
         }
 
         // Verificar se o candidato já está inscrito no evento
-        const inscricao = await db.get(
-          'SELECT * FROM EventoCandidato WHERE id_evento = ? AND id_candidato = ?',
-          [evento.id_evento, candidato.id]
-        );
+        const inscricao = await new Promise((resolve, reject) => {
+          db.get(`
+            SELECT * FROM EventoxCandidato 
+            WHERE id_evento = ? AND id_candidato = ?
+          `, [evento.id_evento, id_candidato], (err, row) => {
+            if (err) {
+              console.error('Erro ao verificar inscrição:', err);
+              reject(err);
+            }
+            resolve(row);
+          });
+        });
 
         if (inscricao) {
+          await db.run('ROLLBACK');
           return res.status(400).json({ erro: 'Candidato já está inscrito no evento ativo' });
         }
 
-        // Gerar URL de confirmação
-        const url_confirmacao = `${process.env.NEXT_PUBLIC_API_URL}/votacao/interna/confirmacao/${evento.id_evento}/${candidato.id}`;
+        // Gerar URL de votação
+        const url_votacao = `/votacao/interna/confirmacao/${id_candidato}/${evento.id_evento}`;
 
         // Atualizar status do candidato
-        await db.run(
-          'UPDATE Candidatos SET status_candidatura = "aprovado", deseja_ser_candidato = 1 WHERE id = ?',
-          [candidato.id]
-        );
+        const stmtCandidato = await db.prepare(`
+          UPDATE Candidato SET
+            deseja_ser_candidato = 1
+          WHERE id_candidato = ?
+        `);
+
+        await stmtCandidato.run(id_candidato);
+        await stmtCandidato.finalize();
 
         // Adicionar candidato ao evento
-        await db.run(
-          'INSERT INTO EventoCandidato (id_evento, id_candidato, url_confirmacao) VALUES (?, ?, ?)',
-          [evento.id_evento, candidato.id, url_confirmacao]
-        );
+        const stmtEvento = await db.prepare(`
+          INSERT INTO EventoxCandidato (
+            id_evento, id_candidato, url_votacao
+          ) VALUES (?, ?, ?)
+        `);
+
+        await stmtEvento.run(evento.id_evento, id_candidato, url_votacao);
+        await stmtEvento.finalize();
 
         // Commit da transação
         await db.run('COMMIT');
@@ -103,33 +135,34 @@ async function handler(req, res) {
         return res.status(200).json({
           mensagem: 'Candidato aprovado e adicionado ao evento com sucesso',
           dados: {
-            id_candidato: candidato.id,
+            id_candidato,
             id_evento: evento.id_evento,
-            url_confirmacao
+            nome_evento: evento.nome_evento,
+            url_votacao
           }
         });
 
-      } else { // reprovar
-        // Atualizar status do candidato
-        await db.run(
-          'UPDATE Candidatos SET status_candidatura = "reprovado", deseja_ser_candidato = 0 WHERE id = ?',
-          [candidato.id]
-        );
+      } else {
+        // Reprovar candidato
+        const stmtCandidato = await db.prepare(`
+          UPDATE Candidato SET
+            deseja_ser_candidato = 0
+          WHERE id_candidato = ?
+        `);
+
+        await stmtCandidato.run(id_candidato);
+        await stmtCandidato.finalize();
 
         // Commit da transação
         await db.run('COMMIT');
 
         return res.status(200).json({
           mensagem: 'Candidato reprovado com sucesso',
-          dados: {
-            id_candidato: candidato.id,
-            status: 'reprovado'
-          }
+          dados: { id_candidato }
         });
       }
 
     } catch (error) {
-      // Rollback em caso de erro
       await db.run('ROLLBACK');
       throw error;
     }

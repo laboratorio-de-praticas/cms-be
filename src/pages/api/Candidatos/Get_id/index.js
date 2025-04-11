@@ -14,12 +14,20 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
+    const { id_candidato } = req.query;
+    console.log('ID do candidato recebido:', id_candidato);
+
+    if (!id_candidato) {
+      return res.status(400).json({ erro: 'ID do candidato é obrigatório' });
+    }
+
     // Conectar ao banco de dados
     db = await conectar_banco();
     console.log('Banco de dados conectado');
 
-    const candidatos = await new Promise((resolve, reject) => {
-      db.all(`
+    // Buscar dados do candidato
+    const candidato = await new Promise((resolve, reject) => {
+      db.get(`
         SELECT 
           c.id_candidato,
           c.ra,
@@ -34,24 +42,26 @@ export default async function handler(req, res) {
           u.tipo_usuario
         FROM Candidato c
         JOIN Usuario u ON c.id_usuario = u.id_usuario
-        WHERE u.ativo = 1
-        ORDER BY u.nome ASC
-      `, (err, rows) => {
+        WHERE c.id_candidato = ?
+      `, [id_candidato], (err, row) => {
         if (err) {
-          console.error('Erro ao buscar candidatos:', err);
+          console.error('Erro ao buscar candidato:', err);
           reject(err);
-        } else {
-          resolve(rows || []);
         }
+        resolve(row);
       });
     });
 
-    console.log('Candidatos encontrados:', candidatos);
+    console.log('Dados do candidato:', candidato);
 
-    return res.status(200).json(candidatos);
+    if (!candidato) {
+      return res.status(404).json({ erro: 'Candidato não encontrado' });
+    }
+
+    return res.status(200).json(candidato);
 
   } catch (error) {
-    console.error('Erro ao buscar candidatos:', error);
+    console.error('Erro ao buscar candidato:', error);
     return res.status(500).json({ 
       erro: 'Erro interno do servidor',
       detalhes: error.message 

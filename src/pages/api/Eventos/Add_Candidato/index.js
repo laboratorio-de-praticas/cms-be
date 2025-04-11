@@ -14,11 +14,11 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    const { id_evento, id_projeto } = req.body;
-    console.log('Dados recebidos:', { id_evento, id_projeto });
+    const { id_evento, id_candidato } = req.body;
+    console.log('Dados recebidos:', { id_evento, id_candidato });
 
-    if (!id_evento || !id_projeto) {
-      return res.status(400).json({ erro: 'ID do evento e ID do projeto são obrigatórios' });
+    if (!id_evento || !id_candidato) {
+      return res.status(400).json({ erro: 'ID do evento e ID do candidato são obrigatórios' });
     }
 
     // Conectar ao banco de dados
@@ -40,63 +40,63 @@ export default async function handler(req, res) {
         return res.status(404).json({ erro: 'Evento não encontrado' });
       }
 
-      // Verificar se o projeto existe e está ativo
-      const projeto = await db.get(`
-        SELECT id_projeto FROM Projetos 
-        WHERE id_projeto = ? AND ativo = 1
-      `, [id_projeto]);
+      // Verificar se o candidato existe
+      const candidato = await db.get(`
+        SELECT id_candidato FROM Candidato 
+        WHERE id_candidato = ?
+      `, [id_candidato]);
 
-      if (!projeto) {
+      if (!candidato) {
         await db.run('ROLLBACK');
-        return res.status(404).json({ erro: 'Projeto não encontrado ou inativo' });
+        return res.status(404).json({ erro: 'Candidato não encontrado' });
       }
 
-      // Verificar se o projeto já está inscrito no evento
+      // Verificar se o candidato já está inscrito no evento
       const inscricaoExistente = await db.get(`
-        SELECT COUNT(*) as total FROM EventoxProjeto 
-        WHERE id_evento = ? AND id_projeto = ?
-      `, [id_evento, id_projeto]);
+        SELECT COUNT(*) as total FROM EventoxCandidato 
+        WHERE id_evento = ? AND id_candidato = ?
+      `, [id_evento, id_candidato]);
 
       console.log('Verificação de inscrição existente:', {
         id_evento,
-        id_projeto,
+        id_candidato,
         inscricaoExistente
       });
 
       if (inscricaoExistente && inscricaoExistente.total > 0) {
         await db.run('ROLLBACK');
         return res.status(400).json({ 
-          erro: 'Projeto já está inscrito neste evento',
+          erro: 'Candidato já está inscrito neste evento',
           detalhes: {
             id_evento,
-            id_projeto
+            id_candidato
           }
         });
       }
 
       // Gerar URL de votação no formato correto
-      const url_votacao = `/votacao/publica/confirmacao/${id_projeto}/${id_evento}`;
+      const url_votacao = `/votacao/interna/confirmacao/${id_candidato}/${id_evento}`;
 
-      // Inserir projeto no evento
+      // Inserir candidato no evento
       const stmt = await db.prepare(`
-        INSERT INTO EventoxProjeto (
+        INSERT INTO EventoxCandidato (
           id_evento,
-          id_projeto,
+          id_candidato,
           url_votacao
         ) VALUES (?, ?, ?)
       `);
 
-      await stmt.run(id_evento, id_projeto, url_votacao);
+      await stmt.run(id_evento, id_candidato, url_votacao);
       await stmt.finalize();
 
       // Commit da transação
       await db.run('COMMIT');
 
       return res.status(201).json({
-        mensagem: 'Projeto adicionado ao evento com sucesso',
+        mensagem: 'Candidato adicionado ao evento com sucesso',
         dados: {
           id_evento,
-          id_projeto,
+          id_candidato,
           url_votacao
         }
       });
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
     }
 
   } catch (error) {
-    console.error('Erro ao adicionar projeto ao evento:', error);
+    console.error('Erro ao adicionar candidato ao evento:', error);
     return res.status(500).json({ 
       erro: 'Erro interno do servidor',
       detalhes: error.message 

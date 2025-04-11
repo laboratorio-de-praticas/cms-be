@@ -1,18 +1,8 @@
-import { IncomingForm } from 'formidable';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import conectar_banco from '@/config/database';
-import generateQRCode from '../../../../utils/qrCodeGenerator';
 // import authMiddleware from '../../../../middleware/authMiddleware';
-
-
-// Configuração para permitir o parsing do form-data
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,25 +17,25 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    const form = new IncomingForm();
-    const [fields, files] = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        resolve([fields, files]);
-      });
-    });
-
-    // Função auxiliar para obter o valor do campo
-    const getFieldValue = (field) => {
-      if (!fields[field]) return '';
-      return Array.isArray(fields[field]) ? fields[field][0] : fields[field];
-    };
+    const {
+      nome_projeto,
+      nome_equipe,
+      tlr,
+      turma,
+      descricao,
+      cea,
+      area_atuacao,
+      ods_ids,
+      linhas_extensao_ids,
+      areas_tematicas_ids,
+      integrantes_ids
+    } = req.body;
 
     // Validação dos campos obrigatórios
     const camposObrigatorios = ['nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
     for (const campo of camposObrigatorios) {
-      const valor = getFieldValue(campo);
-      if (!valor || valor.trim() === '') {
+      const valor = req.body[campo];
+      if (!valor || String(valor).trim() === '') {
         return res.status(400).json({ erro: `Campo ${campo} é obrigatório e não pode estar vazio` });
       }
     }
@@ -54,53 +44,31 @@ export default async function handler(req, res) {
     db = await conectar_banco();
     console.log('Banco de dados conectado');
 
-    // Processar imagem de capa
-    let imagem_capa = '/imgs/projetos/capa/padrao.png';
-    if (files.capa && files.capa[0]) {
-      const capa = files.capa[0];
-      const extensao = path.extname(capa.originalFilename);
-      const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
-      const caminhoArquivo = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'capa', nomeArquivo);
-      
-      await fs.mkdir(path.dirname(caminhoArquivo), { recursive: true });
-      await fs.copyFile(capa.filepath, caminhoArquivo);
-      
-      imagem_capa = `/imgs/projetos/capa/${nomeArquivo}`;
-    }
-
-
-    console.log('Iniciando inserção do projeto no banco');
-    const stmt = await db.prepare(`
-      INSERT INTO Projetos (
-        nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-        descricao, cea, area_atuacao
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    // Iniciar transação
+    await db.run('BEGIN TRANSACTION');
 
     try {
-      // Inserir projeto no banco com o QR Code
-      console.log('Iniciando inserção do projeto no banco');
+      // Inserir projeto no banco
       const stmt = await db.prepare(`
         INSERT INTO Projetos (
           nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-          descricao, cea, area_atuacao, qr_code
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          descricao, cea, area_atuacao
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const result = await stmt.run(
-        getFieldValue('nome_projeto').trim(),
-        getFieldValue('nome_equipe').trim(),
-        parseInt(getFieldValue('tlr')),
-        imagem_capa,
-
-        fields.turma,
-        fields.descricao,
-        fields.cea,
-        fields.area_atuacao
+      await stmt.run(
+        String(nome_projeto).trim(),
+        String(nome_equipe).trim(),
+        parseInt(tlr),
+        '/imgs/projetos/capa/padrao.png', // Imagem padrão
+        String(turma).trim(),
+        String(descricao).trim(),
+        parseInt(cea),
+        String(area_atuacao).trim()
       );
 
       await stmt.finalize();
-      console.log('Projeto inserido com sucesso:', result);
+      console.log('Projeto inserido com sucesso');
 
       // Obter o ID do projeto inserido
       const id_projeto = await new Promise((resolve, reject) => {
@@ -116,29 +84,9 @@ export default async function handler(req, res) {
         throw new Error('Não foi possível obter o ID do projeto inserido');
       }
 
-      // Processar imagens adicionais
-      if (files.imagens && files.imagens.length > 0) {
-        for (const imagem of files.imagens) {
-          const extensao = path.extname(imagem.originalFilename);
-          const nomeArquivo = `${crypto.randomUUID()}${extensao}`;
-          const caminhoArquivo = path.join(process.cwd(), 'public', 'imgs', 'projetos', 'imagens', nomeArquivo);
-          
-          await fs.mkdir(path.dirname(caminhoArquivo), { recursive: true });
-          await fs.copyFile(imagem.filepath, caminhoArquivo);
-          
-          const imagemUrl = `/imgs/projetos/imagens/${nomeArquivo}`;
-          await db.run(
-            'INSERT INTO ImagensProjeto (projeto_id, imagem_url) VALUES (?, ?)',
-            [id_projeto, imagemUrl]
-          );
-        }
-      }
-
       // Processar ODS
-      const odsIds = getFieldValue('ods_ids');
-      if (odsIds) {
-        const odsArray = JSON.parse(odsIds);
-        for (const odsId of odsArray) {
+      if (ods_ids && Array.isArray(ods_ids)) {
+        for (const odsId of ods_ids) {
           await db.run(
             'INSERT INTO ProjetoODS (projeto_id, ods_id) VALUES (?, ?)',
             [id_projeto, odsId]
@@ -147,10 +95,8 @@ export default async function handler(req, res) {
       }
 
       // Processar Linhas de Extensão
-      const linhaIds = getFieldValue('linhas_extensao_ids');
-      if (linhaIds) {
-        const linhaArray = JSON.parse(linhaIds);
-        for (const linhaId of linhaArray) {
+      if (linhas_extensao_ids && Array.isArray(linhas_extensao_ids)) {
+        for (const linhaId of linhas_extensao_ids) {
           await db.run(
             'INSERT INTO ProjetoLinhaExtensao (projeto_id, linha_extensao_id) VALUES (?, ?)',
             [id_projeto, linhaId]
@@ -159,10 +105,8 @@ export default async function handler(req, res) {
       }
 
       // Processar Áreas Temáticas
-      const areaIds = getFieldValue('areas_tematicas_ids');
-      if (areaIds) {
-        const areaArray = JSON.parse(areaIds);
-        for (const areaId of areaArray) {
+      if (areas_tematicas_ids && Array.isArray(areas_tematicas_ids)) {
+        for (const areaId of areas_tematicas_ids) {
           await db.run(
             'INSERT INTO ProjetoAreaTematica (projeto_id, area_tematica_id) VALUES (?, ?)',
             [id_projeto, areaId]
@@ -171,10 +115,8 @@ export default async function handler(req, res) {
       }
 
       // Processar Integrantes
-      const integranteIds = getFieldValue('integrantes_ids');
-      if (integranteIds) {
-        const integranteArray = JSON.parse(integranteIds);
-        for (const integranteId of integranteArray) {
+      if (integrantes_ids && Array.isArray(integrantes_ids)) {
+        for (const integranteId of integrantes_ids) {
           await db.run(
             'INSERT INTO IntegrantesEquipe (projeto_id, usuario_id) VALUES (?, ?)',
             [id_projeto, integranteId]
@@ -201,15 +143,14 @@ export default async function handler(req, res) {
         mensagem: 'Projeto criado com sucesso',
         projeto: {
           id_projeto,
-          nome_projeto: getFieldValue('nome_projeto').trim(),
-          nome_equipe: getFieldValue('nome_equipe').trim(),
-          tlr: parseInt(getFieldValue('tlr')),
-          turma: getFieldValue('turma').trim(),
-          descricao: getFieldValue('descricao').trim(),
-          cea: parseInt(getFieldValue('cea')),
-          area_atuacao: getFieldValue('area_atuacao').trim(),
-
-          imagem_capa,
+          nome_projeto: String(nome_projeto).trim(),
+          nome_equipe: String(nome_equipe).trim(),
+          tlr: parseInt(tlr),
+          turma: String(turma).trim(),
+          descricao: String(descricao).trim(),
+          cea: parseInt(cea),
+          area_atuacao: String(area_atuacao).trim(),
+          imagem_capa: '/imgs/projetos/capa/padrao.png'
         }
       });
 

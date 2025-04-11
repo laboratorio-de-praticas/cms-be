@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel, Alert, Paper } from '@mui/material';
+import { Container, Typography, Box, TextField, Button, Select, MenuItem, FormControl, InputLabel, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
 export default function AddProjectToEvent() {
   const [eventos, setEventos] = useState([]);
@@ -14,11 +14,13 @@ export default function AddProjectToEvent() {
     fetch('/api/Eventos/List')
       .then(res => res.json())
       .then(data => {
-        if (data.dados) {
-          setEventos(data.dados);
+        console.log('Dados dos eventos:', data);
+        if (data.eventos) {
+          setEventos(data.eventos);
         }
       })
       .catch(err => {
+        console.error('Erro ao carregar eventos:', err);
         setMessage({ type: 'error', text: 'Erro ao carregar eventos' });
       });
 
@@ -26,11 +28,13 @@ export default function AddProjectToEvent() {
     fetch('/api/Projetos/Get_active')
       .then(res => res.json())
       .then(data => {
+        console.log('Dados dos projetos:', data);
         if (data.projetos) {
           setProjetos(data.projetos);
         }
       })
       .catch(err => {
+        console.error('Erro ao carregar projetos:', err);
         setMessage({ type: 'error', text: 'Erro ao carregar projetos' });
       });
   }, []);
@@ -91,14 +95,14 @@ export default function AddProjectToEvent() {
             <FormControl fullWidth sx={{ mb: 3 }}>
               <InputLabel>Evento</InputLabel>
               <Select
-                value={'selectedEvento'}
+                value={selectedEvento}
                 onChange={(e) => setSelectedEvento(e.target.value)}
                 label="Evento"
                 required
               >
                 {eventos.map((evento) => (
                   <MenuItem key={evento.id_evento} value={evento.id_evento}>
-                    {evento.nome_evento} - {new Date(evento.data_inicio).toLocaleDateString()}
+                    {evento.nome_evento} ({evento.tipo_evento})
                   </MenuItem>
                 ))}
               </Select>
@@ -107,13 +111,13 @@ export default function AddProjectToEvent() {
             <FormControl fullWidth sx={{ mb: 3 }}>
               <InputLabel>Projeto</InputLabel>
               <Select
-                value={'selectedProjeto'}
+                value={selectedProjeto}
                 onChange={(e) => setSelectedProjeto(e.target.value)}
                 label="Projeto"
                 required
               >
                 {projetos.map((projeto) => (
-                  <MenuItem key={projeto.id_projeto} value={projeto.id_projeto}>
+                  <MenuItem key={projeto.id} value={projeto.id}>
                     {projeto.nome_projeto} - {projeto.nome_equipe}
                   </MenuItem>
                 ))}
@@ -130,6 +134,66 @@ export default function AddProjectToEvent() {
               {loading ? 'Processando...' : 'Adicionar Projeto ao Evento'}
             </Button>
           </form>
+        </Paper>
+
+        {/* Tabela de Eventos */}
+        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Lista de Eventos
+          </Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Nome do Evento</TableCell>
+                  <TableCell>Tipo</TableCell>
+                  <TableCell>Total de Projetos</TableCell>
+                  <TableCell>Total de Candidatos</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {eventos.map((evento) => (
+                  <TableRow key={evento.id_evento}>
+                    <TableCell>{evento.id_evento}</TableCell>
+                    <TableCell>{evento.nome_evento}</TableCell>
+                    <TableCell>{evento.tipo_evento}</TableCell>
+                    <TableCell>{evento.total_projetos || 0}</TableCell>
+                    <TableCell>{evento.total_candidatos || 0}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+        {/* Tabela de Projetos */}
+        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Lista de Projetos Ativos
+          </Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Nome do Projeto</TableCell>
+                  <TableCell>Equipe</TableCell>
+                  <TableCell>Turma</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {projetos.map((projeto) => (
+                  <TableRow key={projeto.id}>
+                    <TableCell>{projeto.id}</TableCell>
+                    <TableCell>{projeto.nome_projeto}</TableCell>
+                    <TableCell>{projeto.nome_equipe}</TableCell>
+                    <TableCell>{projeto.turma}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Paper>
 
         {message.text && (

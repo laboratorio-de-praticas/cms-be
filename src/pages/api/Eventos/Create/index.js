@@ -30,50 +30,50 @@ export default async function handler(req, res) {
     });
 
     // Validação dos campos obrigatórios
-    const camposObrigatorios = ['nome_evento', 'descricao', 'data_inicio', 'data_fim', 'local'];
+    const camposObrigatorios = ['nome_evento', 'tipo_evento'];
     for (const campo of camposObrigatorios) {
       if (!fields[campo]) {
         return res.status(400).json({ erro: `Campo ${campo} é obrigatório` });
       }
     }
 
-    // Validar datas
-    const dataInicio = new Date(fields.data_inicio);
-    const dataFim = new Date(fields.data_fim);
-    if (dataInicio >= dataFim) {
-      return res.status(400).json({ erro: 'Data de início deve ser anterior à data de fim' });
+    // Validar tipo_evento
+    if (!['interno', 'externo'].includes(fields.tipo_evento)) {
+      return res.status(400).json({ erro: 'Tipo de evento inválido. Deve ser "interno" ou "externo"' });
     }
 
     db = await conectar_banco();
 
     // Inserir evento no banco
-    const id = crypto.randomUUID();
-    await db.run(`
+    const stmt = await db.prepare(`
       INSERT INTO Eventos (
-        id, nome_evento, descricao, data_inicio, data_fim, local, ativo
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [
-      id,
+        nome_evento, tipo_evento
+      ) VALUES (?, ?)
+    `);
+
+    const result = await stmt.run(
       fields.nome_evento,
-      fields.descricao,
-      fields.data_inicio,
-      fields.data_fim,
-      fields.local,
-      true
-    ]);
+      fields.tipo_evento
+    );
+
+    await stmt.finalize();
+
+    // Obter o ID do evento inserido
+    const id_evento = await new Promise((resolve, reject) => {
+      db.get('SELECT last_insert_rowid() as id', (err, row) => {
+        if (err) reject(err);
+        resolve(row.id);
+      });
+    });
 
     await db.close();
 
     return res.status(201).json({
       mensagem: 'Evento criado com sucesso',
       evento: {
-        id_evento: id,
+        id_evento,
         nome_evento: fields.nome_evento,
-        descricao: fields.descricao,
-        data_inicio: fields.data_inicio,
-        data_fim: fields.data_fim,
-        local: fields.local,
-        ativo: true
+        tipo_evento: fields.tipo_evento
       }
     });
 
