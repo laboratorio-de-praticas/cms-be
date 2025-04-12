@@ -1,303 +1,94 @@
-# CMS - Sistema de Gerenciamento de Eventos
+# LP-CMS - Sistema de Gerenciamento de Conteúdo
 
-Sistema de gerenciamento de eventos acadêmicos com funcionalidades para projetos e candidatos.
+Sistema de gerenciamento de conteúdo desenvolvido para a disciplina de Laboratório de Programação.
+
+## Visão Geral
+
+O LP-CMS é uma aplicação web desenvolvida com Next.js que permite o gerenciamento de projetos, eventos, alunos e avaliações. O sistema foi projetado para ser modular, escalável e fácil de manter.
+
+## Tecnologias Utilizadas
+
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend**: API Routes (Next.js)
+- **Banco de Dados**: PostgreSQL
 
 ## Estrutura do Projeto
 
 ```
 src/
 ├── pages/
-│   └── api/
-│       ├── Candidatos/
-│       │   ├── Aprovar/
-│       │   ├── Create/
-│       │   ├── Delete/
-│       │   ├── Get_all/
-│       │   ├── Get_id/
-│       │   └── Update/
-│       ├── Eventos/
-│       │   ├── Add_Candidato/
-│       │   ├── Add_Project/
-│       │   ├── Create/
-│       │   ├── Delete/
-│       │   ├── Get_all/
-│       │   ├── Get_id/
-│       │   └── Update/
-│       └── Projetos/
-│           ├── Create/
-│           ├── Delete/
-│           ├── Get_all/
-│           ├── Get_id/
-│           └── Update/
+│   ├── api/
+│   │   ├── Alunos/
+│   │   ├── Avaliacoes/
+│   │   ├── Eventos/
+│   │   ├── Projetos/
+│   │   └── Usuarios/
+│   └── ...
+├── components/
 ├── config/
-│   └── database.js
-└── middleware/
-    └── authMiddleware.js
+└── ...
 ```
 
-## Rotas da API
+## Documentação
 
-### Candidatos
+Para mais detalhes sobre a arquitetura e API, consulte:
 
-#### GET /api/Candidatos/Get_all
-- Lista todos os candidatos
-- Retorna: Array de candidatos com seus dados
-
-#### GET /api/Candidatos/Get_id?id_candidato={id}
-- Busca um candidato específico
-- Parâmetros:
-  - id_candidato: ID do candidato
-- Retorna: Dados do candidato
-
-#### POST /api/Candidatos/Create
-- Cria um novo candidato
-- Body:
-  ```json
-  {
-    "ra": "string",
-    "nome": "string",
-    "email_institucional": "string",
-    "telefone": "string",
-    "senha": "string",
-    "turma_atual": "string",
-    "deseja_ser_candidato": boolean,
-    "descricao_campanha": "string",
-    "foto": "file"
-  }
-  ```
-
-#### PUT /api/Candidatos/Update
-- Atualiza um candidato existente
-- Body:
-  ```json
-  {
-    "id_candidato": number,
-    "id_usuario": number,
-    "ra": "string",
-    "nome": "string",
-    "email_institucional": "string",
-    "telefone": "string",
-    "senha": "string",
-    "turma_atual": "string",
-    "deseja_ser_candidato": boolean,
-    "descricao_campanha": "string",
-    "foto": "file"
-  }
-  ```
-
-#### DELETE /api/Candidatos/Delete?id_candidato={id}
-- Remove um candidato
-- Parâmetros:
-  - id_candidato: ID do candidato
-
-#### PUT /api/Candidatos/Aprovar
-- Aprova ou reprova um candidato
-- Body:
-  ```json
-  {
-    "id_candidato": number,
-    "acao": "aprovar" | "reprovar"
-  }
-  ```
-
-### Eventos
-
-#### GET /api/Eventos/Get_all
-- Lista todos os eventos
-- Retorna: Array de eventos com seus dados
-
-#### GET /api/Eventos/Get_id?id_evento={id}
-- Busca um evento específico
-- Parâmetros:
-  - id_evento: ID do evento
-- Retorna: Dados do evento, projetos e candidatos associados
-
-#### POST /api/Eventos/Create
-- Cria um novo evento
-- Body:
-  ```json
-  {
-    "nome_evento": "string",
-    "tipo_evento": "string",
-    "descricao": "string",
-    "data_inicio": "string",
-    "data_fim": "string",
-    "ativo": boolean
-  }
-  ```
-
-#### PUT /api/Eventos/Update
-- Atualiza um evento existente
-- Body:
-  ```json
-  {
-    "id_evento": number,
-    "nome_evento": "string",
-    "tipo_evento": "string",
-    "descricao": "string",
-    "data_inicio": "string",
-    "data_fim": "string",
-    "ativo": boolean
-  }
-  ```
-
-#### DELETE /api/Eventos/Delete?id_evento={id}
-- Remove um evento
-- Parâmetros:
-  - id_evento: ID do evento
-
-#### POST /api/Eventos/Add_Project
-- Adiciona um projeto a um evento
-- Body:
-  ```json
-  {
-    "id_evento": number,
-    "id_projeto": number
-  }
-  ```
-
-#### POST /api/Eventos/Add_Candidato
-- Adiciona um candidato a um evento
-- Body:
-  ```json
-  {
-    "id_evento": number,
-    "id_candidato": number
-  }
-  ```
-
-### Projetos
-
-#### GET /api/Projetos/Get_all
-- Lista todos os projetos
-- Retorna: Array de projetos com seus dados
-
-#### GET /api/Projetos/Get_id?id_projeto={id}
-- Busca um projeto específico
-- Parâmetros:
-  - id_projeto: ID do projeto
-- Retorna: Dados do projeto
-
-#### POST /api/Projetos/Create
-- Cria um novo projeto
-- Body:
-  ```json
-  {
-    "nome_projeto": "string",
-    "descricao": "string",
-    "area": "string",
-    "status": "string",
-    "foto": "file"
-  }
-  ```
-
-#### PUT /api/Projetos/Update
-- Atualiza um projeto existente
-- Body:
-  ```json
-  {
-    "id_projeto": number,
-    "nome_projeto": "string",
-    "descricao": "string",
-    "area": "string",
-    "status": "string",
-    "foto": "file"
-  }
-  ```
-
-#### DELETE /api/Projetos/Delete?id_projeto={id}
-- Remove um projeto
-- Parâmetros:
-  - id_projeto: ID do projeto
-
-## Estrutura do Banco de Dados
-
-### Tabelas Principais
-
-#### Usuario
-- id_usuario (PK)
-- nome
-- email_institucional
-- senha
-- tipo_usuario
-- foto
-- telefone
-- ativo
-
-#### Candidato
-- id_candidato (PK)
-- id_usuario (FK)
-- ra
-- turma_atual
-- deseja_ser_candidato
-- descricao_campanha
-
-#### Eventos
-- id_evento (PK)
-- nome_evento
-- tipo_evento
-- descricao
-- data_inicio
-- data_fim
-- ativo
-
-#### Projetos
-- id_projeto (PK)
-- nome_projeto
-- descricao
-- area
-- status
-- foto
-
-#### EventoxProjeto
-- id_evento (FK)
-- id_projeto (FK)
-- url_votacao
-
-#### EventoxCandidato
-- id_evento (FK)
-- id_candidato (FK)
-- url_votacao
-
-## Requisitos
-
-- Node.js
-- SQLite3
-- Dependências listadas no package.json
+- [Arquitetura do Sistema](ARCHITECTURE.md)
+- [Documentação da API](API_DOCS.md)
+- [Documentação dos Projetos](src/pages/api/Projetos/README.md)
 
 ## Instalação
 
-1. Clone o repositório
+1. Clone o repositório:
+```bash
+git clone https://github.com/seu-usuario/lp-cms.git
+cd lp-cms
+```
+
 2. Instale as dependências:
-   ```bash
-   npm install
-   ```
-3. Configure o banco de dados SQLite
-4. Inicie o servidor:
-   ```bash
-   npm run dev
-   ```
+```bash
+npm install
+```
 
-## Segurança
+3. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
 
-- Todas as rotas estão protegidas por autenticação (comentada no momento)
-- Senhas são armazenadas com hash
-- Validação de dados em todas as entradas
-- Transações para operações críticas
+4. Inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+```
+
+## Variáveis de Ambiente
+
+- `DATABASE_URL`: URL de conexão com o PostgreSQL
+- `JWT_SECRET`: Chave secreta para assinatura dos tokens JWT
+- `NODE_ENV`: Ambiente de execução (development/production)
+
+## Scripts Disponíveis
+
+- `npm run dev`: Inicia o servidor de desenvolvimento
+- `npm run build`: Gera a versão de produção
+- `npm start`: Inicia o servidor de produção
+- `npm run lint`: Executa o linter
+- `npm run test`: Executa os testes
 
 ## Contribuição
 
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
 ## Licença
+
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ## Descrição: ##
-O CMS será o sistema de gerenciamento de conteúdo do projeto, permitindo que administradores cadastrem e gerenciem informações sobre candidatos (representantes de turma) e projetos das feiras FTX e HubTec.
+O LP-CMS será o sistema de gerenciamento de conteúdo do projeto, permitindo que administradores cadastrem e gerenciem informações sobre candidatos (representantes de turma) e projetos das feiras FTX e HubTec.
 
 ## Funcionalidades Principais: (Back-end) ##
 
@@ -369,4 +160,15 @@ src/
 Para mais detalhes sobre cada módulo, consulte a documentação específica em:
 - `src/pages/api/Candidatos/README.md`
 - `src/pages/api/Projetos/README.md`
+
+## Estrutura da API
+
+### Módulos Disponíveis
+- `src/pages/api/Usuarios/` - Gerenciamento de usuários e seus tipos específicos
+  - `src/pages/api/Usuarios/Alunos/` - Informações específicas de alunos
+  - `src/pages/api/Usuarios/README.md` - Documentação do módulo de usuários
+- `src/pages/api/Eventos/` - Gerenciamento de eventos
+  - `src/pages/api/Eventos/README.md` - Documentação do módulo de eventos
+- `src/pages/api/Projetos/` - Gerenciamento de projetos
+  - `src/pages/api/Projetos/README.md` - Documentação do módulo de projetos
 

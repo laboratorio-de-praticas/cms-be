@@ -1,4 +1,4 @@
-import conectar_banco from '@/config/database';
+import { conectar_banco } from '../../../../config/database';
 // import authMiddleware from '../../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
@@ -6,7 +6,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
-  let db;
+  const { fk_id_evento, fk_id_projeto } = req.body;
+
+  if (!fk_id_evento || !fk_id_projeto) {
+    return res.status(400).json({ 
+      mensagem: 'ID do evento e ID do projeto são obrigatórios',
+      dados_recebidos: req.body
+    });
+  }
+
+  const client = await conectar_banco();
+  
   try {
     // Verificar autenticação
     // const auth = await authMiddleware(req, res);
@@ -14,109 +24,71 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    const { id_evento, id_projeto } = req.body;
-    console.log('Dados recebidos:', { id_evento, id_projeto });
-
-    if (!id_evento || !id_projeto) {
-      return res.status(400).json({ erro: 'ID do evento e ID do projeto são obrigatórios' });
-    }
-
-    // Conectar ao banco de dados
-    db = await conectar_banco();
-    console.log('Banco de dados conectado');
-
     // Iniciar transação
-    await db.run('BEGIN TRANSACTION');
+    await client.query('BEGIN');
 
-    try {
-      // Verificar se o evento existe
-      const evento = await db.get(`
-        SELECT id_evento FROM Eventos 
-        WHERE id_evento = ?
-      `, [id_evento]);
+    // Verificar se o evento existe
+    const evento = await client.query(
+      'SELECT * FROM "Eventos" WHERE id_evento = $1',
+      [fk_id_evento]
+    );
 
-      if (!evento) {
-        await db.run('ROLLBACK');
-        return res.status(404).json({ erro: 'Evento não encontrado' });
-      }
-
-      // Verificar se o projeto existe e está ativo
-      const projeto = await db.get(`
-        SELECT id_projeto FROM Projetos 
-        WHERE id_projeto = ? AND ativo = 1
-      `, [id_projeto]);
-
-      if (!projeto) {
-        await db.run('ROLLBACK');
-        return res.status(404).json({ erro: 'Projeto não encontrado ou inativo' });
-      }
-
-      // Verificar se o projeto já está inscrito no evento
-      const inscricaoExistente = await db.get(`
-        SELECT COUNT(*) as total FROM EventoxProjeto 
-        WHERE id_evento = ? AND id_projeto = ?
-      `, [id_evento, id_projeto]);
-
-      console.log('Verificação de inscrição existente:', {
-        id_evento,
-        id_projeto,
-        inscricaoExistente
-      });
-
-      if (inscricaoExistente && inscricaoExistente.total > 0) {
-        await db.run('ROLLBACK');
-        return res.status(400).json({ 
-          erro: 'Projeto já está inscrito neste evento',
-          detalhes: {
-            id_evento,
-            id_projeto
-          }
-        });
-      }
-
-      // Gerar URL de votação no formato correto
-      const url_votacao = `/votacao/publica/confirmacao/${id_projeto}/${id_evento}`;
-
-      // Inserir projeto no evento
-      const stmt = await db.prepare(`
-        INSERT INTO EventoxProjeto (
-          id_evento,
-          id_projeto,
-          url_votacao
-        ) VALUES (?, ?, ?)
-      `);
-
-      await stmt.run(id_evento, id_projeto, url_votacao);
-      await stmt.finalize();
-
-      // Commit da transação
-      await db.run('COMMIT');
-
-      return res.status(201).json({
-        mensagem: 'Projeto adicionado ao evento com sucesso',
-        dados: {
-          id_evento,
-          id_projeto,
-          url_votacao
-        }
-      });
-
-    } catch (error) {
-      // Rollback em caso de erro
-      await db.run('ROLLBACK');
-      throw error;
+    if (evento.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ mensagem: 'Evento não encontrado' });
     }
+
+    // Verificar se o projeto existe
+    const projeto = await client.query(
+      'SELECT * FROM "Projetos" WHERE id_projeto = $1',
+      [fk_id_projeto]
+    );
+
+    if (projeto.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ mensagem: 'Projeto não encontrado' });
+    }
+
+    // Verificar se o projeto já está no evento
+    const projetoEvento = await client.query(
+      'SELECT * FROM "ProjetosEventos" WHERE fk_id_evento = $1 AND fk_id_projeto = $2',
+      [fk_id_evento, fk_id_projeto]
+    );
+
+    if (projetoEvento.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ mensagem: 'Projeto já está cadastrado neste evento' });
+    }
+
+    // Gerar URL do QR Code
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const qrcode = `${baseUrl}/votacao/publica/confirmacao/id_projeto=${fk_id_projeto}/id_evento=${fk_id_evento}`;
+
+    // Inserir projeto no evento
+    await client.query(
+      'INSERT INTO "ProjetosEventos" (fk_id_evento, fk_id_projeto, qrcode) VALUES ($1, $2, $3)',
+      [fk_id_evento, fk_id_projeto, qrcode]
+    );
+
+    // Commit da transação
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      mensagem: 'Projeto adicionado ao evento com sucesso',
+      fk_id_evento,
+      fk_id_projeto,
+      qrcode
+    });
 
   } catch (error) {
+    // Rollback em caso de erro
+    await client.query('ROLLBACK');
     console.error('Erro ao adicionar projeto ao evento:', error);
-    return res.status(500).json({ 
-      erro: 'Erro interno do servidor',
+    res.status(500).json({ 
+      mensagem: 'Erro ao adicionar projeto ao evento',
       detalhes: error.message 
     });
   } finally {
-    if (db) {
-      await db.close();
-      console.log('Conexão com o banco fechada');
-    }
+    client.release();
   }
 } 

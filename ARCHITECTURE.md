@@ -1,167 +1,232 @@
-# Arquitetura do Sistema
+# Arquitetura do Sistema LP-CMS
 
 ## Visão Geral
 
-O sistema é uma aplicação web desenvolvida com Next.js, utilizando SQLite como banco de dados. A arquitetura segue o padrão RESTful para as APIs e implementa boas práticas de desenvolvimento.
+O LP-CMS é uma aplicação web desenvolvida com Next.js para gerenciamento de projetos, eventos, alunos e avaliações. A arquitetura segue os princípios de Clean Architecture e Clean Code, sendo modular, escalável e de fácil manutenção.
 
-## Estrutura de Diretórios
+## Padrões de Projeto
+
+### Clean Architecture
+
+A aplicação é dividida em camadas concêntricas:
+
+1. **Camada de Apresentação (Presentation)**
+   - API Routes do Next.js
+   - Componentes React
+   - Páginas
+
+2. **Camada de Aplicação (Application)**
+   - Serviços
+   - Casos de Uso
+   - Regras de Negócio
+
+3. **Camada de Domínio (Domain)**
+   - Entidades
+   - Interfaces
+   - Regras de Negócio Core
+
+4. **Camada de Infraestrutura (Infrastructure)**
+   - Banco de Dados
+   - Serviços Externos
+   - Configurações
+
+### Repository Pattern
+
+```javascript
+// Exemplo de interface de repositório
+interface IProjetoRepository {
+  create(projeto: Projeto): Promise<Projeto>;
+  update(id: number, projeto: Partial<Projeto>): Promise<Projeto>;
+  findById(id: number): Promise<Projeto | null>;
+  findAll(): Promise<Projeto[]>;
+  delete(id: number): Promise<void>;
+}
+```
+
+### Service Layer
+
+```javascript
+// Exemplo de serviço
+class ProjetoService {
+  constructor(private repository: IProjetoRepository) {}
+
+  async criarProjeto(dados: CriarProjetoDTO): Promise<Projeto> {
+    // Validações
+    // Regras de negócio
+    // Chamada ao repositório
+  }
+}
+```
+
+## Estrutura do Projeto
 
 ```
 src/
 ├── pages/
-│   └── api/              # Endpoints da API
-│       ├── Candidatos/   # Rotas de candidatos
-│       ├── Eventos/      # Rotas de eventos
-│       └── Projetos/     # Rotas de projetos
-├── config/               # Configurações do sistema
-│   └── database.js       # Configuração do banco de dados
-└── middleware/           # Middlewares
-    └── authMiddleware.js # Middleware de autenticação
+│   ├── api/
+│   │   ├── Projetos/
+│   │   ├── Eventos/
+│   │   ├── Alunos/
+│   │   └── Avaliacoes/
+│   └── [páginas públicas]
+├── components/
+│   ├── common/
+│   ├── layout/
+│   └── [componentes específicos]
+├── config/
+│   ├── database.js
+│   └── enums.js
+├── middleware/
+│   ├── auth.js
+│   └── error.js
+└── types/
+    └── index.d.ts
 ```
 
-## Componentes Principais
+## Banco de Dados
 
-### 1. API (pages/api)
+### PostgreSQL
 
-#### Candidatos
-- Create: Criação de candidatos
-- Get_all: Listagem de candidatos
-- Get_id: Busca de candidato específico
-- Update: Atualização de candidatos
-- Delete: Exclusão de candidatos
-- Aprovar: Aprovação/reprovação de candidatos
+O sistema utiliza PostgreSQL como banco de dados principal, com as seguintes tabelas principais:
 
-#### Eventos
-- Create: Criação de eventos
-- Get_all: Listagem de eventos
-- Get_id: Busca de evento específico
-- Update: Atualização de eventos
-- Delete: Exclusão de eventos
-- Add_Project: Adição de projeto a evento
-- Add_Candidato: Adição de candidato a evento
+1. **Usuarios**
+   - id_usuario (PK)
+   - nome
+   - email
+   - senha
+   - tipo_usuario
 
-#### Projetos
-- Create: Criação de projetos
-- Get_all: Listagem de projetos
-- Get_id: Busca de projeto específico
-- Update: Atualização de projetos
-- Delete: Exclusão de projetos
+2. **Alunos**
+   - id_aluno (PK)
+   - ra
+   - fk_id_usuario (FK)
+   - turma
 
-### 2. Configurações (config)
+3. **Projetos**
+   - id_projeto (PK)
+   - titulo
+   - descricao
+   - foto_url
+   - tlr
+   - cea
+   - turma
+   - ativo
+   - data_criacao
+   - data_alteracao
 
-#### database.js
-- Configuração da conexão com o banco SQLite
-- Gerenciamento de conexões
-- Tratamento de erros
+4. **Eventos**
+   - id_evento (PK)
+   - nome_evento
+   - tipo_evento
+   - descricao
+   - data_inicio
+   - data_fim
+   - ativo
 
-### 3. Middlewares (middleware)
+### Relacionamentos
 
-#### authMiddleware.js
-- Autenticação de usuários
-- Validação de tokens
-- Controle de acesso
-
-## Fluxo de Dados
-
-1. **Requisição HTTP**
-   - Cliente envia requisição para a API
-   - Middleware de autenticação valida o acesso
-   - Rota específica processa a requisição
-
-2. **Processamento**
-   - Validação dos dados recebidos
-   - Conexão com o banco de dados
-   - Execução das operações necessárias
-   - Tratamento de erros
-
-3. **Resposta**
-   - Formatação dos dados
-   - Envio da resposta ao cliente
-   - Fechamento da conexão com o banco
+- Um Usuario pode ser um Aluno
+- Um Projeto pertence a uma Turma
+- Um Projeto pode ter múltiplas Imagens
+- Um Projeto pode ter múltiplos Integrantes
+- Um Projeto pode estar associado a múltiplos ODS
+- Um Projeto pode estar associado a múltiplas Linhas de Extensão
+- Um Projeto pode estar associado a múltiplas Categorias
+- Um Evento pode ter múltiplos Projetos
 
 ## Segurança
 
-### 1. Autenticação
-- Middleware de autenticação em todas as rotas
-- Validação de tokens JWT
-- Controle de acesso baseado em roles
+### Autenticação
 
-### 2. Validação de Dados
-- Validação de entrada em todas as rotas
+- JWT (JSON Web Tokens)
+- Middleware de autenticação
+- Proteção de rotas
+- Validação de tokens
+
+### Autorização
+
+- Níveis de acesso baseados em tipo_usuario
+- Validação de permissões
+- Proteção de endpoints sensíveis
+
+### Validação de Dados
+
+- Validação de entrada em todos os endpoints
 - Sanitização de dados
-- Prevenção de SQL Injection
+- Proteção contra SQL Injection
+- Proteção contra XSS
 
-### 3. Transações
-- Uso de transações para operações críticas
-- Rollback em caso de erro
-- Integridade dos dados
+## Padrões de Código
 
-## Performance
+### Clean Code
 
-### 1. Banco de Dados
-- Índices otimizados
-- Queries eficientes
-- Conexões gerenciadas
+- Nomes significativos
+- Funções pequenas e focadas
+- Comentários apenas quando necessário
+- Código auto-documentado
 
-### 2. Cache
-- Cache de consultas frequentes
-- Otimização de recursos
+### SOLID
 
-### 3. Tratamento de Erros
-- Logs detalhados
-- Mensagens de erro claras
-- Recuperação de falhas
+- Single Responsibility Principle
+- Open/Closed Principle
+- Liskov Substitution Principle
+- Interface Segregation Principle
+- Dependency Inversion Principle
 
-## Manutenção
+## Decisões Arquiteturais
 
-### 1. Código
-- Padrões de codificação consistentes
-- Documentação clara
-- Testes automatizados
+### Next.js API Routes
 
-### 2. Banco de Dados
-- Backup regular
-- Manutenção periódica
-- Monitoramento de performance
+- Escolha do Next.js para API Routes
+- Vantagens:
+  - SSR/SSG
+  - API integrada
+  - Fácil deploy
+  - Boa performance
 
-### 3. Deploy
-- Processo automatizado
-- Versionamento
-- Rollback em caso de falha
+### PostgreSQL
 
-## Escalabilidade
+- Escolha do PostgreSQL como banco de dados
+- Vantagens:
+  - ACID
+  - JSONB
+  - Relacionamentos
+  - Performance
 
-### 1. Horizontal
-- Adição de novos servidores
-- Balanceamento de carga
-- Replicação de banco
+### JWT
 
-### 2. Vertical
-- Otimização de recursos
-- Melhorias de hardware
-- Ajuste de configurações
+- Autenticação via JWT
+- Vantagens:
+  - Stateless
+  - Escalável
+  - Seguro
+  - Fácil implementação
 
-## Monitoramento
+## Considerações Futuras
 
-### 1. Logs
-- Logs de acesso
-- Logs de erro
-- Logs de performance
+### Microserviços
 
-### 2. Métricas
-- Tempo de resposta
-- Uso de recursos
-- Taxa de erros
+- Possível separação em microserviços
+- Vantagens:
+  - Escalabilidade
+  - Manutenção
+  - Deploy independente
 
-### 3. Alertas
-- Monitoramento de erros
-- Alertas de performance
-- Notificações de segurança
+### Cache
 
-## Próximos Passos
+- Implementação de cache
+- Redis ou Memcached
+- Melhor performance
 
-1. Implementação de testes automatizados
-2. Melhoria do sistema de cache
-3. Otimização de queries
-4. Adição de novas funcionalidades
-5. Melhoria da documentação 
+### Eventos Assíncronos
+
+- Mensageria
+- RabbitMQ ou Kafka
+- Processamento assíncrono
+
+### Monitoramento
+
+- Logs
+- Métricas
+- Alertas
+- Observabilidade 

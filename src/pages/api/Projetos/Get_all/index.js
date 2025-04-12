@@ -1,4 +1,4 @@
-import conectar_banco from '@/config/database';
+import { conectar_banco } from "../../../../config/database";
 // import authMiddleware from '../../../../middleware/authMiddleware';
 
 export default async function handler(req, res) {
@@ -6,7 +6,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ mensagem: 'Método não permitido' });
   }
 
-  let db;
+  const client = await conectar_banco();
+  
   try {
     // Verificar autenticação
     // const auth = await authMiddleware(req, res);
@@ -14,97 +15,84 @@ export default async function handler(req, res) {
     //   return res.status(401).json({ mensagem: auth.mensagem });
     // }
 
-    db = await conectar_banco();
-
     // Busca todos os projetos com suas relações
-    const projetos = await new Promise((resolve, reject) => {
-      db.all(`
-        SELECT 
-          p.*,
-          GROUP_CONCAT(DISTINCT o.descricao) as ods_descricoes,
-          GROUP_CONCAT(DISTINCT o.id_ods) as ods_ids,
-          GROUP_CONCAT(DISTINCT le.descricao) as linhas_extensao_descricoes,
-          GROUP_CONCAT(DISTINCT le.id_linha) as linhas_extensao_ids,
-          GROUP_CONCAT(DISTINCT at.descricao) as areas_tematicas_descricoes,
-          GROUP_CONCAT(DISTINCT at.id_area) as areas_tematicas_ids,
-          GROUP_CONCAT(DISTINCT u.nome) as integrantes,
-          GROUP_CONCAT(DISTINCT ip.imagem_url) as imagens_projeto
-        FROM Projetos p
-        LEFT JOIN ProjetoODS po ON p.id_projeto = po.projeto_id
-        LEFT JOIN ODS o ON po.ods_id = o.id_ods
-        LEFT JOIN ProjetoLinhaExtensao ple ON p.id_projeto = ple.projeto_id
-        LEFT JOIN LinhaExtensao le ON ple.linha_extensao_id = le.id_linha
-        LEFT JOIN ProjetoAreaTematica pat ON p.id_projeto = pat.projeto_id
-        LEFT JOIN AreaTematica at ON pat.area_tematica_id = at.id_area
-        LEFT JOIN IntegrantesEquipe ie ON p.id_projeto = ie.projeto_id
-        LEFT JOIN Usuario u ON ie.usuario_id = u.id_usuario
-        LEFT JOIN ImagensProjeto ip ON p.id_projeto = ip.projeto_id
-        GROUP BY p.id_projeto
-        ORDER BY p.id_projeto DESC
-      `, (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows);
-        }
-      });
-    });
+    const query = `
+      SELECT 
+        p.id_projeto,
+        p.titulo,
+        p.nome_equipe,
+        p.descricao,
+        p.tlr,
+        p.cea,
+        p.turma,
+        p.foto_url,
+        p.ativo,
+        p.data_criacao,
+        p.data_alteracao,
+        json_agg(DISTINCT jsonb_build_object(
+          'id_imagem', ip.id_imagem,
+          'imagem_url', ip.imagem_url
+        )) as imagens,
+        json_agg(DISTINCT jsonb_build_object(
+          'id_ods', o.id_ods,
+          'descricao', o.descricao
+        )) as ods,
+        json_agg(DISTINCT jsonb_build_object(
+          'id_linha', le.id_linha,
+          'descricao', le.descricao
+        )) as linhas_extensao,
+        json_agg(DISTINCT jsonb_build_object(
+          'id_categoria', c.id_categoria,
+          'nome', c.nome,
+          'descricao', c.descricao
+        )) as categorias,
+        json_agg(DISTINCT jsonb_build_object(
+          'id_integrante', ie.id_integrante,
+          'id_aluno', ie.aluno_id,
+          'nome', u.nome
+        )) as integrantes
+      FROM "Projetos" p
+      LEFT JOIN "ImagensProjeto" ip ON p.id_projeto = ip.projeto_id
+      LEFT JOIN "ProjetoODS" po ON p.id_projeto = po.projeto_id
+      LEFT JOIN "ODS" o ON po.ods_id = o.id_ods
+      LEFT JOIN "ProjetoLinhaExtensao" ple ON p.id_projeto = ple.projeto_id
+      LEFT JOIN "LinhaExtensao" le ON ple.linha_extensao_id = le.id_linha
+      LEFT JOIN "CategoriasProjetos" cp ON p.id_projeto = cp.fk_id_projeto
+      LEFT JOIN "Categorias" c ON cp.fk_id_categoria = c.id_categoria
+      LEFT JOIN integrantesequipe ie ON p.id_projeto = ie.projeto_id
+      LEFT JOIN "Alunos" a ON ie.aluno_id = a.id_aluno
+      LEFT JOIN "Usuarios" u ON a.fk_id_usuario = u.id
+      GROUP BY p.id_projeto
+      ORDER BY p.data_criacao DESC
+    `;
 
-    // Processa os resultados
-    const projetos_formatados = projetos.map(projeto => ({
-      id: projeto.id_projeto,
-      nome_projeto: projeto.nome_projeto,
-      nome_equipe: projeto.nome_equipe,
-      tlr: projeto.tlr,
-      imagem_capa: projeto.imagem_capa,
-      turma: projeto.turma,
-      descricao: projeto.descricao,
-      cea: projeto.cea,
-      ativo: projeto.ativo === 1,
-      area_atuacao: projeto.area_atuacao,
-      ods: projeto.ods_descricoes ? {
-        ids: projeto.ods_ids?.split(',').map(Number) || [],
-        descricoes: projeto.ods_descricoes?.split(',') || []
-      } : { ids: [], descricoes: [] },
-      linhas_extensao: projeto.linhas_extensao_descricoes ? {
-        ids: projeto.linhas_extensao_ids?.split(',').map(Number) || [],
-        descricoes: projeto.linhas_extensao_descricoes?.split(',') || []
-      } : { ids: [], descricoes: [] },
-      areas_tematicas: projeto.areas_tematicas_descricoes ? {
-        ids: projeto.areas_tematicas_ids?.split(',').map(Number) || [],
-        descricoes: projeto.areas_tematicas_descricoes?.split(',') || []
-      } : { ids: [], descricoes: [] },
-      integrantes: projeto.integrantes ? projeto.integrantes.split(',') : [],
-      imagens: projeto.imagens_projeto ? projeto.imagens_projeto.split(',') : []
+    const result = await client.query(query);
+
+    // Processa os resultados para remover valores nulos
+    const projetos = result.rows.map(projeto => ({
+      ...projeto,
+      imagens: projeto.imagens[0] ? projeto.imagens.filter(img => img.id_imagem) : [],
+      ods: projeto.ods[0] ? projeto.ods.filter(o => o.id_ods) : [],
+      linhas_extensao: projeto.linhas_extensao[0] ? projeto.linhas_extensao.filter(le => le.id_linha) : [],
+      categorias: projeto.categorias[0] ? projeto.categorias.filter(c => c.id_categoria) : [],
+      integrantes: projeto.integrantes[0] ? projeto.integrantes.filter(i => i.id_integrante) : []
     }));
 
     return res.status(200).json({
       mensagem: 'Projetos recuperados com sucesso',
-      projetos: projetos_formatados
+      total: projetos.length,
+      dados: projetos
     });
 
   } catch (erro) {
     console.error('Erro ao buscar projetos:', erro);
     return res.status(500).json({ 
       mensagem: 'Erro interno do servidor',
-      erro: erro.message 
+      erro: process.env.NODE_ENV === 'development' ? erro.message : undefined
     });
   } finally {
-    if (db) {
-      try {
-        await new Promise((resolve, reject) => {
-          db.close((err) => {
-            if (err) {
-              console.error('Erro ao fechar conexão com o banco:', err);
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-        });
-      } catch (erro) {
-        console.error('Erro ao fechar conexão com o banco:', erro);
-      }
+    if (client) {
+      await client.release();
     }
   }
 }

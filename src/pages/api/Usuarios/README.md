@@ -1,148 +1,171 @@
-# Módulo de Usuários
+# API de Usuários
 
-## Visão Geral
-O módulo de Usuários gerencia o cadastro e autenticação de usuários do sistema. Suporta diferentes tipos de usuários (aluno, professor, admin) e integra-se com o módulo de Candidatos para alunos que desejam se candidatar.
+Esta API gerencia os usuários do sistema, incluindo alunos, professores, atendentes e administradores.
 
 ## Endpoints
 
-### 1. Criar Usuário
+### GET /api/Usuarios/Get_all
+Retorna a lista de todos os usuários do sistema.
+
+**Resposta:**
+```json
+{
+  "mensagem": "Usuários listados com sucesso",
+  "total": 10,
+  "dados": [
+    {
+      "id": 1,
+      "nome": "Nome do Usuário",
+      "email_institucional": "email@fatec.sp.gov.br",
+      "tipo_usuario": "Admin",
+      "status_usuario": "Ativo",
+      "telefone": "11999999999",
+      "data_criacao": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "nome": "Nome do Aluno",
+      "email_institucional": "aluno@fatec.sp.gov.br",
+      "tipo_usuario": "Interno",
+      "status_usuario": "Ativo",
+      "telefone": "11999999999",
+      "data_criacao": "2024-01-01T00:00:00.000Z",
+      "dados_aluno": {
+        "id_aluno": 1,
+        "ra": "123456",
+        "curso_semestre": "DSM - 2024.1",
+        "deseja_ser_candidato": false
+      }
+    }
+  ]
+}
 ```
-POST /api/Usuarios/Create
+
+### GET /api/Usuarios/Get_id?id_usuario={id}
+Retorna os dados de um usuário específico.
+
+**Parâmetros:**
+- `id_usuario`: ID do usuário a ser buscado
+
+**Resposta:**
+```json
+{
+  "mensagem": "Usuário encontrado com sucesso",
+  "dados": {
+    "id": 1,
+    "nome": "Nome do Usuário",
+    "email_institucional": "email@fatec.sp.gov.br",
+    "tipo_usuario": "Interno",
+    "status_usuario": "Ativo",
+    "telefone": "11999999999",
+    "data_criacao": "2024-01-01T00:00:00.000Z",
+    "dados_aluno": {
+      "id_aluno": 1,
+      "ra": "123456",
+      "curso_semestre": "DSM - 2024.1",
+      "deseja_ser_candidato": false
+    }
+  }
+}
 ```
-- Cria um novo usuário
-- Body (form-data):
-  - nome (obrigatório): string
-  - email_institucional (obrigatório): string (formato: @fatec.sp.gov.br)
-  - senha (obrigatório): string
-  - tipo_usuario (obrigatório): "aluno" | "professor" | "admin"
-  - foto: arquivo de imagem
-  - ra (apenas para alunos): string
-  - turma (apenas para alunos): string
-  - curso (apenas para alunos): string
-- Resposta:
+
+### POST /api/Usuarios/Create
+Cria um novo usuário no sistema.
+
+**Corpo da Requisição:**
+```json
+{
+  "nome": "Nome do Usuário",
+  "email_institucional": "email@fatec.sp.gov.br",
+  "senha": "Senha@123",
+  "tipo_usuario": "Interno",
+  "dados_aluno": {
+    "ra": "123456",
+    "curso_semestre": "DSM - 2024.1",
+    "deseja_ser_candidato": false
+  }
+}
+```
+
+**Resposta:**
 ```json
 {
   "mensagem": "Usuário criado com sucesso",
-  "usuario": {
-    "id": "uuid",
-    "nome": "string",
-    "email_institucional": "string",
-    "tipo_usuario": "string",
-    "foto": "string",
-    "ra": "string",
-    "turma": "string",
-    "curso": "string"
+  "dados": {
+    "id": 1,
+    "nome": "Nome do Usuário",
+    "email_institucional": "email@fatec.sp.gov.br",
+    "tipo_usuario": "Interno",
+    "status_usuario": "Pendente",
+    "data_criacao": "2024-01-01T00:00:00.000Z",
+    "dados_aluno": {
+      "id_aluno": 1,
+      "ra": "123456",
+      "curso_semestre": "DSM - 2024.1",
+      "deseja_ser_candidato": false
+    }
   }
 }
 ```
 
-### 2. Login
-```
-POST /api/Usuarios/Login
-```
-- Autentica um usuário
-- Body (JSON):
+### PUT /api/Usuarios/Update?id={id}
+Atualiza os dados de um usuário existente.
+
+**Parâmetros:**
+- `id`: ID do usuário a ser atualizado
+
+**Corpo da Requisição:**
 ```json
 {
-  "email_institucional": "string",
-  "senha": "string"
-}
-```
-- Resposta:
-```json
-{
-  "mensagem": "Login realizado com sucesso",
-  "token": "string",
-  "usuario": {
-    "id": "uuid",
-    "nome": "string",
-    "email_institucional": "string",
-    "tipo_usuario": "string",
-    "foto": "string"
+  "nome": "Novo Nome",
+  "email_institucional": "novo.email@fatec.sp.gov.br",
+  "telefone": "11999999999",
+  "status_usuario": "Ativo",
+  "dados_aluno": {
+    "ra": "123456",
+    "curso_semestre": "DSM - 2024.1",
+    "deseja_ser_candidato": true
   }
 }
 ```
 
-### 3. Buscar Usuário por ID
-```
-GET /api/Usuarios/Get_id?id=uuid
-```
-- Retorna os detalhes de um usuário específico
-- Parâmetros:
-  - id (obrigatório): UUID do usuário
-- Resposta:
+**Resposta:**
 ```json
 {
-  "usuario": {
-    "id": "uuid",
-    "nome": "string",
-    "email_institucional": "string",
-    "tipo_usuario": "string",
-    "foto": "string",
-    "ra": "string",
-    "turma": "string",
-    "curso": "string"
+  "mensagem": "Usuário atualizado com sucesso",
+  "dados": {
+    "id": 1,
+    "nome": "Novo Nome",
+    "email_institucional": "novo.email@fatec.sp.gov.br",
+    "tipo_usuario": "Interno",
+    "status_usuario": "Ativo",
+    "telefone": "11999999999",
+    "data_criacao": "2024-01-01T00:00:00.000Z",
+    "dados_aluno": {
+      "id_aluno": 1,
+      "ra": "123456",
+      "curso_semestre": "DSM - 2024.1",
+      "deseja_ser_candidato": true
+    }
   }
 }
 ```
 
-### 4. Atualizar Usuário
-```
-PUT /api/Usuarios/Update?id=uuid
-```
-- Atualiza os dados de um usuário
-- Parâmetros:
-  - id (obrigatório): UUID do usuário
-- Body (form-data): Mesmos campos da criação, mas todos opcionais
-- Resposta: Mesmo formato da criação
+## Tipos de Usuário
+- `Interno`: Aluno da instituição
+- `Admin`: Administrador do sistema
+- `Atendente`: Atendente da instituição
+- `Professor`: Professor da instituição
 
-### 5. Deletar Usuário
-```
-DELETE /api/Usuarios/Delete?id=uuid
-```
-- Marca um usuário como inativo
-- Parâmetros:
-  - id (obrigatório): UUID do usuário
-- Resposta:
-```json
-{
-  "mensagem": "Usuário deletado com sucesso"
-}
-```
-
-## Estrutura de Dados
-
-### Tabela Usuario
-```sql
-CREATE TABLE Usuario (
-  id_usuario TEXT PRIMARY KEY,
-  nome TEXT NOT NULL,
-  email_institucional TEXT NOT NULL UNIQUE,
-  senha TEXT NOT NULL,
-  tipo_usuario TEXT NOT NULL,
-  foto TEXT,
-  ativo INTEGER DEFAULT 1
-);
-```
-
-### Tabela Candidato (para alunos)
-```sql
-CREATE TABLE Candidato (
-  id TEXT PRIMARY KEY,
-  ra TEXT NOT NULL,
-  turma TEXT NOT NULL,
-  curso TEXT NOT NULL,
-  status TEXT DEFAULT 'pendente',
-  qr_code TEXT,
-  FOREIGN KEY (id) REFERENCES Usuario(id_usuario)
-);
-```
+## Status do Usuário
+- `Pendente`: Usuário recém-criado, aguardando aprovação
+- `Ativo`: Usuário ativo no sistema
+- `Desligado`: Usuário desligado do sistema
 
 ## Observações
-- Todos os endpoints retornam status 200 em caso de sucesso
-- Em caso de erro, retornam status 400, 401, 404 ou 500 com mensagem de erro
-- O email institucional deve ser único e seguir o formato @fatec.sp.gov.br
-- A senha é armazenada com hash bcrypt
-- As fotos são salvas em `public/imgs/usuarios/`
-- Apenas usuários ativos podem fazer login
-- Alunos podem se tornar candidatos após a aprovação 
+1. O campo `email_institucional` deve ser único no sistema
+2. Para usuários do tipo "Interno", o campo `ra` também deve ser único
+3. A senha é armazenada de forma hasheada no banco de dados
+4. O campo `telefone` é opcional
+5. O campo `status_usuario` é definido automaticamente como "Pendente" no momento da criação
+6. Para usuários do tipo "Interno", o campo `curso_semestre` deve seguir o formato "Curso - Semestre" (ex: "DSM - 2024.1") 

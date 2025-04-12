@@ -1,176 +1,128 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import conectar_banco from '@/config/database';
-// import authMiddleware from '../../../../middleware/authMiddleware';
+import { conectar_banco } from "../../../../config/database";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ mensagem: 'Método não permitido' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ mensagem: "Método não permitido" });
   }
 
-  let db;
-  try {
-    // Verificar autenticação
-    // const auth = await authMiddleware(req, res);
-    // if (!auth.success) {
-    //   return res.status(401).json({ mensagem: auth.mensagem });
-    // }
+  const client = await conectar_banco();
 
+  try {
     const {
-      nome_projeto,
+      titulo,
       nome_equipe,
-      tlr,
-      turma,
       descricao,
+      foto_url,
+      tlr,
       cea,
-      area_atuacao,
-      ods_ids,
-      linhas_extensao_ids,
-      areas_tematicas_ids,
-      integrantes_ids
+      turma,
+      imagens,
+      integrantes,
+      ods,
+      linhas_extensao,
+      categorias
     } = req.body;
 
-    // Validação dos campos obrigatórios
-    const camposObrigatorios = ['nome_projeto', 'nome_equipe', 'tlr', 'turma', 'descricao', 'cea', 'area_atuacao'];
-    for (const campo of camposObrigatorios) {
-      const valor = req.body[campo];
-      if (!valor || String(valor).trim() === '') {
-        return res.status(400).json({ erro: `Campo ${campo} é obrigatório e não pode estar vazio` });
+    // Validações básicas
+    if (!titulo || !nome_equipe || !descricao || !tlr || !cea || !turma) {
+      return res.status(400).json({ mensagem: "Campos obrigatórios não preenchidos" });
+    }
+
+    // Inicia transação
+    await client.query('BEGIN');
+
+    // Insere o projeto
+    const projetoResult = await client.query(
+      `INSERT INTO "Projetos" 
+       (titulo, nome_equipe, descricao, foto_url, tlr, cea, turma) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+       RETURNING id_projeto`,
+      [titulo, nome_equipe, descricao, foto_url, tlr, cea, turma]
+    );
+
+    const id_projeto = projetoResult.rows[0].id_projeto;
+
+    // Insere imagens se existirem
+    if (imagens && imagens.length > 0) {
+      for (const imagem of imagens) {
+        await client.query(
+          `INSERT INTO "ImagensProjeto" (projeto_id, imagem_url) 
+           VALUES ($1, $2)`,
+          [id_projeto, imagem.imagem_url]
+        );
       }
     }
 
-    // Conectar ao banco de dados
-    db = await conectar_banco();
-    console.log('Banco de dados conectado');
-
-    // Iniciar transação
-    await db.run('BEGIN TRANSACTION');
-
-    try {
-      // Inserir projeto no banco
-      const stmt = await db.prepare(`
-        INSERT INTO Projetos (
-          nome_projeto, nome_equipe, tlr, imagem_capa, turma, 
-          descricao, cea, area_atuacao
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      await stmt.run(
-        String(nome_projeto).trim(),
-        String(nome_equipe).trim(),
-        parseInt(tlr),
-        '/imgs/projetos/capa/padrao.png', // Imagem padrão
-        String(turma).trim(),
-        String(descricao).trim(),
-        parseInt(cea),
-        String(area_atuacao).trim()
-      );
-
-      await stmt.finalize();
-      console.log('Projeto inserido com sucesso');
-
-      // Obter o ID do projeto inserido
-      const id_projeto = await new Promise((resolve, reject) => {
-        db.get('SELECT last_insert_rowid() as id', (err, row) => {
-          if (err) reject(err);
-          resolve(row.id);
-        });
-      });
-
-      console.log('ID do projeto:', id_projeto);
-
-      if (!id_projeto) {
-        throw new Error('Não foi possível obter o ID do projeto inserido');
+    // Insere integrantes se existirem
+    if (integrantes && integrantes.length > 0) {
+      for (const integrante of integrantes) {
+        await client.query(
+          `INSERT INTO "integrantesequipe" 
+           (projeto_id, aluno_id) 
+           VALUES ($1, $2)`,
+          [id_projeto, integrante.aluno_id]
+        );
       }
-
-      // Processar ODS
-      if (ods_ids && Array.isArray(ods_ids)) {
-        for (const odsId of ods_ids) {
-          await db.run(
-            'INSERT INTO ProjetoODS (projeto_id, ods_id) VALUES (?, ?)',
-            [id_projeto, odsId]
-          );
-        }
-      }
-
-      // Processar Linhas de Extensão
-      if (linhas_extensao_ids && Array.isArray(linhas_extensao_ids)) {
-        for (const linhaId of linhas_extensao_ids) {
-          await db.run(
-            'INSERT INTO ProjetoLinhaExtensao (projeto_id, linha_extensao_id) VALUES (?, ?)',
-            [id_projeto, linhaId]
-          );
-        }
-      }
-
-      // Processar Áreas Temáticas
-      if (areas_tematicas_ids && Array.isArray(areas_tematicas_ids)) {
-        for (const areaId of areas_tematicas_ids) {
-          await db.run(
-            'INSERT INTO ProjetoAreaTematica (projeto_id, area_tematica_id) VALUES (?, ?)',
-            [id_projeto, areaId]
-          );
-        }
-      }
-
-      // Processar Integrantes
-      if (integrantes_ids && Array.isArray(integrantes_ids)) {
-        for (const integranteId of integrantes_ids) {
-          await db.run(
-            'INSERT INTO IntegrantesEquipe (projeto_id, usuario_id) VALUES (?, ?)',
-            [id_projeto, integranteId]
-          );
-        }
-      }
-
-      // Commit da transação
-      await db.run('COMMIT');
-
-      // Buscar o projeto inserido para confirmar
-      const projetoInserido = await db.get(
-        'SELECT * FROM Projetos WHERE id_projeto = ?',
-        [id_projeto]
-      );
-
-      if (!projetoInserido) {
-        throw new Error('Projeto não foi encontrado após inserção');
-      }
-
-      console.log('Projeto confirmado no banco:', projetoInserido);
-
-      return res.status(201).json({
-        mensagem: 'Projeto criado com sucesso',
-        projeto: {
-          id_projeto,
-          nome_projeto: String(nome_projeto).trim(),
-          nome_equipe: String(nome_equipe).trim(),
-          tlr: parseInt(tlr),
-          turma: String(turma).trim(),
-          descricao: String(descricao).trim(),
-          cea: parseInt(cea),
-          area_atuacao: String(area_atuacao).trim(),
-          imagem_capa: '/imgs/projetos/capa/padrao.png'
-        }
-      });
-
-    } catch (error) {
-      // Rollback em caso de erro
-      await db.run('ROLLBACK');
-      console.error('Erro ao inserir projeto:', error);
-      throw error;
     }
 
-  } catch (error) {
-    console.error('Erro ao criar projeto:', error);
-    return res.status(500).json({ 
-      erro: 'Erro interno do servidor',
-      detalhes: error.message 
+    // Insere ODS se existirem
+    if (ods && ods.length > 0) {
+      for (const id_ods of ods) {
+        await client.query(
+          `INSERT INTO "ProjetoODS" (projeto_id, ods_id) 
+           VALUES ($1, $2)`,
+          [id_projeto, id_ods]
+        );
+      }
+    }
+
+    // Insere linhas de extensão se existirem
+    if (linhas_extensao && linhas_extensao.length > 0) {
+      for (const id_linha of linhas_extensao) {
+        await client.query(
+          `INSERT INTO "ProjetoLinhaExtensao" (projeto_id, linha_extensao_id) 
+           VALUES ($1, $2)`,
+          [id_projeto, id_linha]
+        );
+      }
+    }
+
+    // Insere categorias se existirem
+    if (categorias && categorias.length > 0) {
+      for (const id_categoria of categorias) {
+        await client.query(
+          `INSERT INTO "CategoriasProjetos" (fk_id_projeto, fk_id_categoria) 
+           VALUES ($1, $2)`,
+          [id_projeto, id_categoria]
+        );
+      }
+    }
+
+    // Commit da transação
+    await client.query('COMMIT');
+
+    return res.status(201).json({
+      mensagem: "Projeto criado com sucesso",
+      dados: {
+        id_projeto,
+        titulo,
+        nome_equipe,
+        descricao,
+        foto_url,
+        tlr,
+        cea,
+        turma
+      }
+    });
+
+  } catch (erro) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao criar projeto:', erro);
+    return res.status(500).json({
+      mensagem: "Erro ao criar projeto",
+      erro: process.env.NODE_ENV === 'development' ? erro.message : undefined
     });
   } finally {
-    if (db) {
-      await db.close();
-      console.log('Conexão com o banco fechada');
-    }
+    client.release();
   }
 }

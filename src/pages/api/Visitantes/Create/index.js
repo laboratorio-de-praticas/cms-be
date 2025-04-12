@@ -1,5 +1,4 @@
-import conectar_banco from '@/config/database';
-import bcrypt from 'bcryptjs';
+import { conectar_banco } from '@/config/database';
 
 export const config = {
   api: {
@@ -12,63 +11,56 @@ export default async function handler(req, res) {
     return res.status(405).json({ erro: 'Método não permitido' });
   }
 
-  const { nome, telefone, senha, cidade, avaliador_tecnico } = req.body;
+  const { nome, telefone } = req.body;
 
-  if (!nome || !telefone || !senha || !cidade) {
+  if (!nome || !telefone) {
     return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
   }
 
-  let db;
+  const client = await conectar_banco();
+  
   try {
-    db = await conectar_banco();
-    console.log('Banco de dados conectado');
+    // Iniciar transação
+    await client.query('BEGIN');
 
-    await new Promise((resolve, reject) => {
-      db.run(`CREATE TABLE IF NOT EXISTS Visitantes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        telefone TEXT NOT NULL UNIQUE,
-        senha TEXT NOT NULL,
-        cidade TEXT NOT NULL,
-        avaliador_tecnico INTEGER DEFAULT 0
-      )`, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    // Verificar se o telefone já existe
+    const visitanteExistente = await client.query(
+      'SELECT * FROM "Visitantes" WHERE telefone = $1',
+      [telefone]
+    );
 
-    const visitante_existente = await new Promise((resolve, reject) => {
-      db.get('SELECT * FROM Visitantes WHERE telefone = ?', [telefone], (err, row) => {
-        if (err) reject(err);
-        resolve(row);
-      });
-    });
-
-    if (visitante_existente) {
+    if (visitanteExistente.rows.length > 0) {
+      await client.query('ROLLBACK');
       return res.status(409).json({ erro: 'Telefone já cadastrado' });
     }
 
-    const senha_hash = await bcrypt.hash(senha, 10);
+    // Gerar chave de acesso aleatória de 4 dígitos
+    const chave_acesso = Math.floor(1000 + Math.random() * 9000).toString();
 
-    await new Promise((resolve, reject) => {
-      db.run(
-        'INSERT INTO Visitantes (nome, telefone, senha, cidade, avaliador_tecnico) VALUES (?, ?, ?, ?, ?)',
-        [nome, telefone, senha_hash, cidade, avaliador_tecnico || 0],
-        (err) => {
-          if (err) reject(err);
-          else resolve();
-        }
-      );
+    // Inserir novo visitante
+    const result = await client.query(
+      `INSERT INTO "Visitantes" 
+       (nome, telefone, chave_acesso) 
+       VALUES ($1, $2, $3) 
+       RETURNING id_visitante, nome, telefone, chave_acesso, data_criacao`,
+      [nome, telefone, chave_acesso]
+    );
+
+    // Commit da transação
+    await client.query('COMMIT');
+
+    return res.status(201).json({ 
+      mensagem: 'Visitante cadastrado com sucesso!',
+      dados: result.rows[0]
     });
-
-    return res.status(201).json({ mensagem: 'Visitante cadastrado com sucesso!' });
   } catch (erro) {
+    await client.query('ROLLBACK');
     console.error('Erro ao cadastrar visitante:', erro);
-    return res.status(500).json({ erro: 'Erro ao cadastrar visitante' });
+    return res.status(500).json({ 
+      erro: 'Erro ao cadastrar visitante',
+      detalhes: process.env.NODE_ENV === 'development' ? erro.message : undefined
+    });
   } finally {
-    if (db) {
-      await db.close();
-      console.log('Conexão com o banco fechada');
-    }
+    await client.end();
   }
 }

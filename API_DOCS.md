@@ -1,446 +1,350 @@
-# Documentação da API
+# Documentação da API LP-CMS
+
+## Visão Geral
+
+A API do LP-CMS é uma API RESTful que permite o gerenciamento de projetos, eventos, alunos e avaliações. Todos os endpoints retornam respostas em formato JSON.
+
+## Autenticação
+
+A maioria dos endpoints requer autenticação via JWT. O token deve ser enviado no header da requisição:
+
+```
+Authorization: Bearer <token>
+```
 
 ## Endpoints
 
-### Candidatos
+### 1. Projetos
 
-#### Listar Candidatos
-```http
-GET /api/Candidatos/Get_all
-```
+#### 1.1 Criar Projeto
+`POST /api/Projetos/Create`
 
-**Resposta**
-```json
-[
-  {
-    "id_candidato": 1,
-    "ra": "123456",
-    "turma_atual": "DSM-1A",
-    "deseja_ser_candidato": true,
-    "descricao_campanha": "Descrição da campanha",
-    "id_usuario": 1,
-    "nome": "Nome do Candidato",
-    "email_institucional": "email@fatec.sp.gov.br",
-    "telefone": "11999999999",
-    "foto": "/imgs/candidatos/foto.jpg",
-    "tipo_usuario": "aluno"
-  }
-]
-```
+Cria um novo projeto com todas as suas relações.
 
-#### Buscar Candidato
-```http
-GET /api/Candidatos/Get_id?id_candidato=1
-```
-
-**Parâmetros**
-- id_candidato (obrigatório): ID do candidato
-
-**Resposta**
+**Body:**
 ```json
 {
-  "id_candidato": 1,
-  "ra": "123456",
-  "turma_atual": "DSM-1A",
-  "deseja_ser_candidato": true,
-  "descricao_campanha": "Descrição da campanha",
-  "id_usuario": 1,
-  "nome": "Nome do Candidato",
-  "email_institucional": "email@fatec.sp.gov.br",
-  "telefone": "11999999999",
-  "foto": "/imgs/candidatos/foto.jpg",
-  "tipo_usuario": "aluno"
-}
-```
-
-#### Criar Candidato
-```http
-POST /api/Candidatos/Create
-```
-
-**Body (form-data)**
-- ra: RA do aluno
-- nome: Nome completo
-- email_institucional: Email institucional (@fatec.sp.gov.br)
-- telefone: Telefone de contato
-- senha: Senha de acesso
-- turma_atual: Turma atual
-- deseja_ser_candidato: true/false
-- descricao_campanha: Descrição da campanha
-- foto: Arquivo de imagem
-
-**Resposta**
-```json
-{
-  "mensagem": "Candidato registrado com sucesso!",
-  "dados": {
-    "ra": "123456",
-    "nome": "Nome do Candidato",
-    "email": "email@fatec.sp.gov.br"
-  }
-}
-```
-
-#### Atualizar Candidato
-```http
-PUT /api/Candidatos/Update
-```
-
-**Body (form-data)**
-- id_candidato: ID do candidato
-- id_usuario: ID do usuário
-- ra: RA do aluno
-- nome: Nome completo
-- email_institucional: Email institucional
-- telefone: Telefone de contato
-- senha: Nova senha (opcional)
-- turma_atual: Turma atual
-- deseja_ser_candidato: true/false
-- descricao_campanha: Descrição da campanha
-- foto: Nova foto (opcional)
-
-**Resposta**
-```json
-{
-  "mensagem": "Candidato atualizado com sucesso!",
-  "dados": {
-    "id_candidato": 1,
-    "nome": "Nome do Candidato",
-    "email": "email@fatec.sp.gov.br"
-  }
-}
-```
-
-#### Excluir Candidato
-```http
-DELETE /api/Candidatos/Delete?id_candidato=1
-```
-
-**Parâmetros**
-- id_candidato (obrigatório): ID do candidato
-
-**Resposta**
-```json
-{
-  "mensagem": "Candidato excluído com sucesso"
-}
-```
-
-#### Aprovar/Reprovar Candidato
-```http
-PUT /api/Candidatos/Aprovar
-```
-
-**Body**
-```json
-{
-  "id_candidato": 1,
-  "acao": "aprovar" // ou "reprovar"
-}
-```
-
-**Resposta (aprovação)**
-```json
-{
-  "mensagem": "Candidato aprovado e adicionado ao evento com sucesso",
-  "dados": {
-    "id_candidato": 1,
-    "id_evento": 1,
-    "nome_evento": "Nome do Evento",
-    "url_votacao": "/votacao/interna/confirmacao/1/1"
-  }
-}
-```
-
-**Resposta (reprovação)**
-```json
-{
-  "mensagem": "Candidato reprovado com sucesso",
-  "dados": {
-    "id_candidato": 1
-  }
-}
-```
-
-### Eventos
-
-#### Listar Eventos
-```http
-GET /api/Eventos/Get_all
-```
-
-**Resposta**
-```json
-[
-  {
-    "id_evento": 1,
-    "nome_evento": "Nome do Evento",
-    "tipo_evento": "Tipo do Evento",
-    "descricao": "Descrição do evento",
-    "data_inicio": "2024-01-01",
-    "data_fim": "2024-01-31",
-    "ativo": true,
-    "total_projetos": 5,
-    "total_candidatos": 3
-  }
-]
-```
-
-#### Buscar Evento
-```http
-GET /api/Eventos/Get_id?id_evento=1
-```
-
-**Parâmetros**
-- id_evento (obrigatório): ID do evento
-
-**Resposta**
-```json
-{
-  "evento": {
-    "id_evento": 1,
-    "nome_evento": "Nome do Evento",
-    "tipo_evento": "Tipo do Evento",
-    "descricao": "Descrição do evento",
-    "data_inicio": "2024-01-01",
-    "data_fim": "2024-01-31",
-    "ativo": true
-  },
-  "projetos": [
+  "titulo": "string",
+  "nome_equipe": "string",
+  "descricao": "string",
+  "foto_url": "string",
+  "tlr": boolean,
+  "cea": boolean,
+  "turma": "string",
+  "imagens": [
     {
-      "id_projeto": 1,
-      "nome_projeto": "Nome do Projeto",
-      "url_votacao": "/votacao/publica/confirmacao/1/1"
+      "imagem_url": "string"
     }
   ],
-  "candidatos": [
+  "integrantes": [
     {
-      "id_candidato": 1,
-      "nome": "Nome do Candidato",
-      "url_votacao": "/votacao/interna/confirmacao/1/1"
+      "aluno_id": number
     }
+  ],
+  "ods": [number],
+  "linhas_extensao": [number],
+  "categorias": [number]
+}
+```
+
+#### 1.2 Atualizar Projeto
+`PUT /api/Projetos/Update?id_projeto={id}`
+
+Atualiza um projeto existente. Permite atualização parcial.
+
+**Parâmetros:**
+- `id_projeto` (query): ID do projeto
+
+**Body (opcional):**
+```json
+{
+  "titulo": "string",
+  "nome_equipe": "string",
+  "descricao": "string",
+  "foto_url": "string",
+  "tlr": boolean,
+  "cea": boolean,
+  "turma": "string",
+  "ativo": boolean,
+  "imagens": [
+    {
+      "imagem_url": "string"
+    }
+  ],
+  "integrantes": [
+    {
+      "aluno_id": number
+    }
+  ],
+  "ods": [number],
+  "linhas_extensao": [number],
+  "categorias": [number]
+}
+```
+
+#### 1.3 Obter Todos os Projetos
+`GET /api/Projetos/Get_all`
+
+Retorna todos os projetos cadastrados.
+
+#### 1.4 Obter Projetos Ativos
+`GET /api/Projetos/Get_active`
+
+Retorna apenas os projetos ativos.
+
+#### 1.5 Obter Projeto por ID
+`GET /api/Projetos/Get_id?id_projeto={id}`
+
+Retorna um projeto específico.
+
+**Parâmetros:**
+- `id_projeto` (query): ID do projeto
+
+#### 1.6 Obter Projetos por Turma
+`GET /api/Projetos/Get_turma?turma={turma}`
+
+Retorna projetos de uma turma específica.
+
+**Parâmetros:**
+- `turma` (query): Nome da turma
+
+#### 1.7 Obter Projetos por Aluno
+`GET /api/Projetos/Get_aluno?id_aluno={id}`
+
+Retorna projetos de um aluno específico.
+
+**Parâmetros:**
+- `id_aluno` (query): ID do aluno
+
+#### 1.8 Desativar Projeto
+`PUT /api/Projetos/Disable?id_projeto={id}`
+
+Desativa um projeto.
+
+**Parâmetros:**
+- `id_projeto` (query): ID do projeto
+
+### 2. Eventos
+
+#### 2.1 Criar Evento
+`POST /api/Eventos/Create`
+
+Cria um novo evento.
+
+**Body:**
+```json
+{
+  "nome_evento": "string",
+  "tipo_evento": "string",
+  "descricao": "string",
+  "data_inicio": "string",
+  "data_fim": "string",
+  "ativo": boolean
+}
+```
+
+#### 2.2 Atualizar Evento
+`PUT /api/Eventos/Update?id_evento={id}`
+
+Atualiza um evento existente.
+
+**Parâmetros:**
+- `id_evento` (query): ID do evento
+
+**Body:**
+```json
+{
+  "nome_evento": "string",
+  "tipo_evento": "string",
+  "descricao": "string",
+  "data_inicio": "string",
+  "data_fim": "string",
+  "ativo": boolean
+}
+```
+
+#### 2.3 Obter Todos os Eventos
+`GET /api/Eventos/Get_all`
+
+Retorna todos os eventos.
+
+#### 2.4 Obter Evento por ID
+`GET /api/Eventos/Get_id?id_evento={id}`
+
+Retorna um evento específico.
+
+**Parâmetros:**
+- `id_evento` (query): ID do evento
+
+#### 2.5 Adicionar Projeto ao Evento
+`POST /api/Eventos/Add_Project`
+
+Adiciona um projeto a um evento.
+
+**Body:**
+```json
+{
+  "id_evento": number,
+  "id_projeto": number
+}
+```
+
+### 3. Alunos
+
+#### 3.1 Criar Aluno
+`POST /api/Alunos/Create`
+
+Cria um novo aluno.
+
+**Body:**
+```json
+{
+  "ra": "string",
+  "nome": "string",
+  "email_institucional": "string",
+  "telefone": "string",
+  "turma": "string"
+}
+```
+
+#### 3.2 Atualizar Aluno
+`PUT /api/Alunos/Update?id_aluno={id}`
+
+Atualiza um aluno existente.
+
+**Parâmetros:**
+- `id_aluno` (query): ID do aluno
+
+**Body:**
+```json
+{
+  "ra": "string",
+  "nome": "string",
+  "email_institucional": "string",
+  "telefone": "string",
+  "turma": "string"
+}
+```
+
+#### 3.3 Obter Todos os Alunos
+`GET /api/Alunos/Get_all`
+
+Retorna todos os alunos.
+
+#### 3.4 Obter Aluno por ID
+`GET /api/Alunos/Get_id?id_aluno={id}`
+
+Retorna um aluno específico.
+
+**Parâmetros:**
+- `id_aluno` (query): ID do aluno
+
+### 4. Avaliações
+
+#### 4.1 Criar Avaliação
+`POST /api/Avaliacoes/Create`
+
+Cria uma nova avaliação.
+
+**Body:**
+```json
+{
+  "id_projeto": number,
+  "id_avaliador": number,
+  "nota": number,
+  "comentario": "string"
+}
+```
+
+#### 4.2 Atualizar Avaliação
+`PUT /api/Avaliacoes/Update?id_avaliacao={id}`
+
+Atualiza uma avaliação existente.
+
+**Parâmetros:**
+- `id_avaliacao` (query): ID da avaliação
+
+**Body:**
+```json
+{
+  "nota": number,
+  "comentario": "string"
+}
+```
+
+#### 4.3 Obter Avaliações do Projeto
+`GET /api/Avaliacoes/Get_projeto?id_projeto={id}`
+
+Retorna todas as avaliações de um projeto.
+
+**Parâmetros:**
+- `id_projeto` (query): ID do projeto
+
+## Respostas de Erro
+
+A API retorna os seguintes códigos de status HTTP:
+
+- `200`: Sucesso
+- `201`: Criado com sucesso
+- `400`: Requisição inválida
+- `401`: Não autorizado
+- `403`: Proibido
+- `404`: Não encontrado
+- `500`: Erro interno do servidor
+
+Exemplo de resposta de erro:
+```json
+{
+  "mensagem": "Erro ao processar requisição",
+  "erro": "Mensagem detalhada do erro (apenas em desenvolvimento)"
+}
+```
+
+## Paginação
+
+Endpoints que retornam múltiplos itens suportam paginação através dos parâmetros:
+
+- `page`: Número da página (padrão: 1)
+- `limit`: Itens por página (padrão: 10)
+
+Exemplo:
+```
+GET /api/Projetos/Get_all?page=2&limit=20
+```
+
+Resposta paginada:
+```json
+{
+  "mensagem": "Projetos encontrados com sucesso",
+  "total": 100,
+  "pagina_atual": 2,
+  "total_paginas": 5,
+  "dados": [
+    // Array de projetos
   ]
 }
 ```
 
-#### Criar Evento
-```http
-POST /api/Eventos/Create
+## Ordenação
+
+Alguns endpoints suportam ordenação através do parâmetro `sort`:
+
+```
+GET /api/Projetos/Get_all?sort=data_criacao:desc
 ```
 
-**Body**
-```json
-{
-  "nome_evento": "Nome do Evento",
-  "tipo_evento": "Tipo do Evento",
-  "descricao": "Descrição do evento",
-  "data_inicio": "2024-01-01",
-  "data_fim": "2024-01-31",
-  "ativo": true
-}
+## Filtros
+
+Endpoints que retornam múltiplos itens suportam filtros:
+
 ```
-
-**Resposta**
-```json
-{
-  "mensagem": "Evento criado com sucesso",
-  "id_evento": 1
-}
+GET /api/Projetos/Get_all?turma=3A&ativo=true
 ```
-
-#### Atualizar Evento
-```http
-PUT /api/Eventos/Update
-```
-
-**Body**
-```json
-{
-  "id_evento": 1,
-  "nome_evento": "Nome do Evento",
-  "tipo_evento": "Tipo do Evento",
-  "descricao": "Descrição do evento",
-  "data_inicio": "2024-01-01",
-  "data_fim": "2024-01-31",
-  "ativo": true
-}
-```
-
-**Resposta**
-```json
-{
-  "mensagem": "Evento atualizado com sucesso"
-}
-```
-
-#### Excluir Evento
-```http
-DELETE /api/Eventos/Delete?id_evento=1
-```
-
-**Parâmetros**
-- id_evento (obrigatório): ID do evento
-
-**Resposta**
-```json
-{
-  "mensagem": "Evento excluído com sucesso"
-}
-```
-
-#### Adicionar Projeto ao Evento
-```http
-POST /api/Eventos/Add_Project
-```
-
-**Body**
-```json
-{
-  "id_evento": 1,
-  "id_projeto": 1
-}
-```
-
-**Resposta**
-```json
-{
-  "mensagem": "Projeto adicionado ao evento com sucesso",
-  "url_votacao": "/votacao/publica/confirmacao/1/1"
-}
-```
-
-#### Adicionar Candidato ao Evento
-```http
-POST /api/Eventos/Add_Candidato
-```
-
-**Body**
-```json
-{
-  "id_evento": 1,
-  "id_candidato": 1
-}
-```
-
-**Resposta**
-```json
-{
-  "mensagem": "Candidato adicionado ao evento com sucesso",
-  "url_votacao": "/votacao/interna/confirmacao/1/1"
-}
-```
-
-### Projetos
-
-#### Listar Projetos
-```http
-GET /api/Projetos/Get_all
-```
-
-**Resposta**
-```json
-[
-  {
-    "id_projeto": 1,
-    "nome_projeto": "Nome do Projeto",
-    "descricao": "Descrição do projeto",
-    "area": "Área do projeto",
-    "status": "Status do projeto",
-    "foto": "/imgs/projetos/foto.jpg"
-  }
-]
-```
-
-#### Buscar Projeto
-```http
-GET /api/Projetos/Get_id?id_projeto=1
-```
-
-**Parâmetros**
-- id_projeto (obrigatório): ID do projeto
-
-**Resposta**
-```json
-{
-  "id_projeto": 1,
-  "nome_projeto": "Nome do Projeto",
-  "descricao": "Descrição do projeto",
-  "area": "Área do projeto",
-  "status": "Status do projeto",
-  "foto": "/imgs/projetos/foto.jpg"
-}
-```
-
-#### Criar Projeto
-```http
-POST /api/Projetos/Create
-```
-
-**Body (form-data)**
-- nome_projeto: Nome do projeto
-- descricao: Descrição do projeto
-- area: Área do projeto
-- status: Status do projeto
-- foto: Arquivo de imagem
-
-**Resposta**
-```json
-{
-  "mensagem": "Projeto criado com sucesso",
-  "id_projeto": 1
-}
-```
-
-#### Atualizar Projeto
-```http
-PUT /api/Projetos/Update
-```
-
-**Body (form-data)**
-- id_projeto: ID do projeto
-- nome_projeto: Nome do projeto
-- descricao: Descrição do projeto
-- area: Área do projeto
-- status: Status do projeto
-- foto: Nova foto (opcional)
-
-**Resposta**
-```json
-{
-  "mensagem": "Projeto atualizado com sucesso"
-}
-```
-
-#### Excluir Projeto
-```http
-DELETE /api/Projetos/Delete?id_projeto=1
-```
-
-**Parâmetros**
-- id_projeto (obrigatório): ID do projeto
-
-**Resposta**
-```json
-{
-  "mensagem": "Projeto excluído com sucesso"
-}
-```
-
-## Códigos de Resposta
-
-- 200: Sucesso
-- 201: Criado com sucesso
-- 400: Requisição inválida
-- 401: Não autorizado
-- 404: Recurso não encontrado
-- 405: Método não permitido
-- 409: Conflito
-- 500: Erro interno do servidor
 
 ## Observações
 
-- Todas as rotas estão protegidas por autenticação (comentada no momento)
-- As URLs de votação são geradas automaticamente ao adicionar projetos ou candidatos a eventos
-- As fotos são armazenadas no diretório public/imgs
-- As senhas são armazenadas com hash
-- Todas as operações críticas são realizadas dentro de transações 
+1. Todos os endpoints retornam mensagens de erro detalhadas em ambiente de desenvolvimento
+2. As atualizações são feitas em transação, garantindo a integridade dos dados
+3. Relacionamentos são atualizados completamente quando enviados
+4. Campos não enviados em atualizações parciais mantêm seus valores originais
+5. A data de alteração é atualizada automaticamente em todas as modificações 

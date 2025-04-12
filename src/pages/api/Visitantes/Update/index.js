@@ -1,73 +1,93 @@
-import conectar_banco from '@/config/database';
-import bcrypt from 'bcryptjs';
+import { conectar_banco } from '@/config/database';
 
 export default async function handler(req, res) {
-  if (req.method !== "PUT") {
-    return res.status(405).json({ erro: "Método não permitido" });
+  if (req.method !== 'PUT') {
+    return res.status(405).json({ erro: 'Método não permitido' });
   }
 
-  const { id, nome, telefone, cidade, senha } = req.body;
+  const { id_visitante } = req.query;
+  const { nome, telefone } = req.body;
 
-  if (!id || !nome || !telefone || !cidade) {
-    return res.status(400).json({
-      erro: "Campos obrigatórios faltando",
-      campos_faltando: {
-        id: !id,
-        nome: !nome,
-        telefone: !telefone,
-        cidade: !cidade,
-      },
-    });
+  if (!id_visitante) {
+    return res.status(400).json({ erro: 'ID do visitante é obrigatório' });
   }
 
-  let db;
+  if (!nome && !telefone) {
+    return res.status(400).json({ erro: 'Nenhum campo para atualizar fornecido' });
+  }
+
+  const client = await conectar_banco();
+  
   try {
-    db = await conectar_banco();
-    console.log('Banco de dados conectado');
+    // Iniciar transação
+    await client.query('BEGIN');
 
-    const visitanteExistente = await new Promise((resolve, reject) => {
-      db.get("SELECT * FROM Visitantes WHERE id = ?", [id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    // Verificar se o visitante existe
+    const visitante = await client.query(
+      'SELECT * FROM "Visitantes" WHERE id_visitante = $1',
+      [id_visitante]
+    );
 
-    if (!visitanteExistente) {
-      return res.status(404).json({ erro: "Visitante não encontrado" });
+    if (visitante.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ erro: 'Visitante não encontrado' });
     }
 
-    let sql = `
-      UPDATE Visitantes SET
-        nome = ?,
-        telefone = ?,
-        cidade = ?
-    `;
-    const params = [nome, telefone, cidade];
+    // Verificar se o novo telefone já está em uso
+    if (telefone && telefone !== visitante.rows[0].telefone) {
+      const telefoneExistente = await client.query(
+        'SELECT * FROM "Visitantes" WHERE telefone = $1 AND id_visitante != $2',
+        [telefone, id_visitante]
+      );
 
-    if (senha) {
-      const senhaHash = await bcrypt.hash(senha, 10);
-      sql += `, senha = ?`;
-      params.push(senhaHash);
+      if (telefoneExistente.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ erro: 'Telefone já está em uso por outro visitante' });
+      }
     }
 
-    sql += ` WHERE id = ?`;
-    params.push(id);
+    // Atualizar visitante
+    const campos = [];
+    const valores = [];
+    let indice = 1;
 
-    await new Promise((resolve, reject) => {
-      db.run(sql, params, function (err) {
-        if (err) reject(err);
-        else resolve();
-      });
+    if (nome) {
+      campos.push(`nome = $${indice}`);
+      valores.push(nome);
+      indice++;
+    }
+
+    if (telefone) {
+      campos.push(`telefone = $${indice}`);
+      valores.push(telefone);
+      indice++;
+    }
+
+    valores.push(id_visitante);
+
+    const result = await client.query(
+      `UPDATE "Visitantes" 
+       SET ${campos.join(', ')}, data_alteracao = NOW() 
+       WHERE id_visitante = $${indice}
+       RETURNING id_visitante, nome, telefone, chave_acesso, data_criacao, data_alteracao`,
+      valores
+    );
+
+    // Commit da transação
+    await client.query('COMMIT');
+
+    return res.status(200).json({
+      mensagem: 'Visitante atualizado com sucesso',
+      dados: result.rows[0]
     });
-
-    return res.status(200).json({ mensagem: "Visitante atualizado com sucesso!" });
   } catch (erro) {
-    console.error("Erro ao atualizar visitante:", erro);
-    return res.status(500).json({ erro: "Erro ao atualizar visitante" });
+    await client.query('ROLLBACK');
+    console.error('Erro ao atualizar visitante:', erro);
+    return res.status(500).json({
+      erro: 'Erro ao atualizar visitante',
+      detalhes: process.env.NODE_ENV === 'development' ? erro.message : undefined
+    });
   } finally {
-    if (db) {
-      await db.close();
-      console.log('Conexão com o banco fechada');
-    }
+    await client.end();
   }
 }
