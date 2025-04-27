@@ -243,6 +243,109 @@ Desativa um projeto específico.
 }
 ```
 
+### 9. Get ODS
+Retorna todos os ODS cadastrados no sistema.
+
+**Requisição:**
+```http
+GET /api/Projetos/Get_ods
+```
+
+**Resposta:**
+```json
+[
+    {
+        "id_ods": 1,
+        "descricao": "Erradicação da Pobreza"
+    },
+    {
+        "id_ods": 2,
+        "descricao": "Fome Zero e Agricultura Sustentável"
+    }
+]
+```
+
+### 10. Get Linhas de Extensão
+Retorna todas as linhas de extensão cadastradas no sistema.
+
+**Requisição:**
+```http
+GET /api/Projetos/Get_linhas_extensao
+```
+
+**Resposta:**
+```json
+[
+    {
+        "id_linha": 1,
+        "descricao": "Educação e Cultura"
+    },
+    {
+        "id_linha": 2,
+        "descricao": "Tecnologia e Inovação"
+    }
+]
+```
+
+### 11. Get Nome de Alunos
+Busca alunos pelo nome, retornando dados tanto da tabela de Alunos quanto de Usuários.
+
+**Requisição:**
+```http
+GET /api/Projetos/Get_nome_alunos?nome=joao
+```
+
+**Parâmetros:**
+- `nome` (obrigatório): Termo para busca no nome do aluno
+
+**Resposta:**
+```json
+[
+    {
+        "id_aluno": 1,
+        "foto_url": "https://exemplo.com/foto.jpg",
+        "curso_semestre": "Engenharia - 4º Semestre",
+        "ra": 123456,
+        "data_matricula": "2023-01-15T00:00:00.000Z",
+        "nome": "João Silva",
+        "telefone": "(11) 99999-9999",
+        "email_institucional": "joao.silva@fatec.sp.gov.br",
+        "tipo_usuario": "Interno",
+        "status_usuario": "Ativo"
+    }
+]
+```
+
+### 12. Get Nome de Projeto
+Busca projetos pelo título.
+
+**Requisição:**
+```http
+GET /api/Projetos/Get_nome_Projeto?nome=projeto
+```
+
+**Parâmetros:**
+- `nome` (obrigatório): Termo para busca no título do projeto
+
+**Resposta:**
+```json
+[
+    {
+        "id_projeto": 1,
+        "titulo": "Projeto de Inovação",
+        "nome_equipe": "Equipe Alpha",
+        "descricao": "Descrição do projeto...",
+        "foto_url": "https://exemplo.com/projeto.jpg",
+        "tlr": 100,
+        "cea": 200,
+        "turma": "DSM-4A",
+        "ativo": true,
+        "data_criacao": "2023-01-15T00:00:00.000Z",
+        "data_alteracao": "2023-01-15T00:00:00.000Z"
+    }
+]
+```
+
 ## Códigos de Status
 
 - `200`: Sucesso
@@ -258,55 +361,5 @@ Desativa um projeto específico.
 3. Relacionamentos (imagens, integrantes, ODS, etc.) são atualizados completamente quando enviados
 4. Campos não enviados em atualizações parciais mantêm seus valores originais
 5. A data de alteração é atualizada automaticamente em todas as modificações
-
-## Estrutura das Tabelas
-
-### Tabela Projetos
-```sql
-CREATE TABLE "Projetos" (
-  id_projeto SERIAL PRIMARY KEY,
-  titulo TEXT NOT NULL,
-  descricao TEXT NOT NULL,
-  id_aluno INTEGER NOT NULL REFERENCES "Alunos"(id_aluno),
-  data_criacao TIMESTAMP DEFAULT now(),
-  data_alteracao TIMESTAMP DEFAULT now()
-);
-```
-
-### Tabela ImagensProjeto
-```sql
-CREATE TABLE "ImagensProjeto" (
-  id_imagem SERIAL PRIMARY KEY,
-  id_projeto INTEGER NOT NULL REFERENCES "Projetos"(id_projeto),
-  url TEXT NOT NULL,
-  ordem INTEGER NOT NULL,
-  data_criacao TIMESTAMP DEFAULT now(),
-  data_alteracao TIMESTAMP DEFAULT now()
-);
-```
-
-### Tabela AvaliacoesProjeto
-```sql
-CREATE TABLE "AvaliacoesProjeto" (
-  id_avaliacao SERIAL PRIMARY KEY,
-  id_projeto INTEGER NOT NULL REFERENCES "Projetos"(id_projeto),
-  id_avaliador INTEGER NOT NULL REFERENCES "Usuarios"(id_usuario),
-  nota DECIMAL(3,1) NOT NULL CHECK (nota >= 0 AND nota <= 10),
-  comentario TEXT,
-  data_avaliacao TIMESTAMP DEFAULT now(),
-  data_alteracao TIMESTAMP DEFAULT now()
-);
-```
-
-## Observações
-1. Um projeto deve estar associado a um aluno existente
-2. As imagens de um projeto são ordenadas pelo campo `ordem`
-3. As avaliações são feitas por usuários do sistema
-4. A nota da avaliação deve estar entre 0 e 10
-5. Um avaliador pode atualizar sua avaliação a qualquer momento
-6. Todas as operações são realizadas dentro de transações para garantir a integridade dos dados
-7. O sistema mantém histórico de alterações através dos campos `data_criacao` e `data_alteracao`
-8. Em ambiente de desenvolvimento, mensagens de erro detalhadas são retornadas
-9. Validações são realizadas antes de cada operação para garantir a consistência dos dados
-10. As conexões com o banco de dados são sempre fechadas após o uso
-11. Ao atualizar um projeto, as imagens antigas são removidas e as novas são inseridas 
+6. As buscas por nome (alunos e projetos) são case-insensitive
+7. Os endpoints de busca retornam resultados ordenados por nome/título
