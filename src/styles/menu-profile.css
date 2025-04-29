@@ -1,0 +1,185 @@
+.menu-perfil-container {
+    position: fixed;
+    top: 0;
+    right: -320px; 
+    width: 300px;
+    height: 100vh;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: right 0.3s ease-in-out;
+    padding: 20px;
+}
+
+.menu-perfil-container.aberto {
+    right: 0; 
+}
+
+
+.shadow-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); 
+    z-index: 999;
+}
+
+.foto-perfil-menu {
+    width: 90px;
+    height: 90px;
+    border-radius: 100%;
+    margin-top: 10px;
+}
+
+.menu-perfil-container button {
+    width: 260px;
+}
+
+
+
+.profile-description {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    width: 260px;
+    border: 1.5px solid #808080;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px #808080;
+    padding:10px;
+    height: auto;
+    overflow: visible;
+}
+
+.nome-perfil-menu,
+.curso-perfil-menu,
+.tipo-usuarioperfil-menu,
+.nome-grupo-menu,
+.descgrupo-menu {
+    margin: -1px 0;
+}
+
+
+.nome-perfil-menu {
+    font-size: 16px;
+    font-weight: bold;
+    color: #808080;
+}
+
+.curso-perfil-menu {
+    color: #808080;
+    font-size: 16px;
+}
+
+.tipo-usuarioperfil-menu {
+    color: #FBB900;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.nome-grupo-menu{
+    color: #808080;
+    font-size: 16px;
+    font-weight: bold;
+}
+.descgrupo-menu{
+    color: #808080;
+    font-size: 16px;
+}
+
+.integrantes img{
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+.integrantes{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    align-self: center;
+}
+
+.editar-perfil,
+.sair-perfil,
+.pedidos-menu,
+.editar-projeto,
+.voltar-perfil {
+    margin-top: 10px;
+    font-size: 16px;
+    width: 100%;
+    height: 50px;
+    border-radius: 5px;
+    border: 1.5px solid;
+}
+
+.editar-perfil {
+    color: white;
+    background-color: #B20000;
+    border-color: #B20000;
+}
+.voltar-perfil {
+    color: white;
+    background-color: #1A6C7C;
+    border-color: #1A6C7C;
+}
+
+.sair-perfil {
+    color: #B20000;
+    background-color: white;
+    border-color: #B20000;
+}
+
+
+.profile-divider {
+    width: 240px; 
+    height: 1px;
+    background-color: #BFBFBF;
+    margin: 20px auto;
+}
+
+
+
+.close-menu {
+    position:absolute;
+    top: 20px;
+    right: -120px;
+    cursor: pointer;
+}
+
+/* ---------------- */
+/* visao adm */
+.profile-description-adm{
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    width: 260px;
+    border: 1.5px solid #808080;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px #808080;
+    padding:10px;
+    height: auto;
+    overflow: visible;
+}
+
+.pedidos-menu{
+    color: white;
+    background-color: #034EA2;
+    border-color: #034EA2;
+    font-weight: bold;
+}
+.editar-projeto{
+    color: white;
+    background-color: #61C454;
+    border-color: #61C454;
+    font-weight: bold;
+}

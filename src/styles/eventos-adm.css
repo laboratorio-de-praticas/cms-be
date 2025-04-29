@@ -1,0 +1,188 @@
+.container-eventos-adm{
+    max-width: 1000px;
+    width: 100%;
+    padding: 50px;
+    margin-bottom: 110px;
+}
+.title-eventos-adm{
+    color: #004854;
+}
+.title-evento-adm p {
+    font-size: 25px;
+    margin-bottom: -10px;
+}
+
+.title-evento-adm h3 {
+    font-size: 35px;
+    
+}
+.row{
+    margin-top: 20px;
+}
+.ocultar, span{
+    color: #BFBFBF;
+}
+span{
+    margin-left: 5px;
+    margin-right: 5px;
+    
+}
+.cadastrar {
+    display: inline-block;
+    height: 40px;
+    width: 150px; /* fixa largura */
+    border-radius: 5px;
+    border: 1px solid #61C454;
+    background-color: #61C454;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+
+.ocultar, .cadastrar{
+    text-decoration: none;
+}
+.btn-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px; /* espaço entre os itens */
+}
+
+.ocultar {
+    width: auto;
+    white-space: nowrap;
+    overflow: visible; /* ou tira isso */
+}
+
+.row.align-items-center {
+    min-height: 40px; /* ajuste conforme o visual desejado */
+  }
+
+  .divider-evadm{
+    height: 2px;
+    background-color: #004854;
+  }
+
+  .card-evento {
+    background-image: url('/imgs/eve.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100px;
+    max-width: 1000px;
+    width: 100%;
+    border-radius: 5px;
+    color: white;
+    align-items: center;
+    display: flex;
+    justify-content: space-between; /* <- isso aqui vai alinhar título à esquerda e botões à direita */
+    padding: 0 20px; /* adiciona espaçamento lateral */
+}
+
+.card-evento h3{
+    font-size: 30px;
+    margin: 0;
+}
+.card-evento a {
+    width: 100px; /* largura fixa como você quer */
+    height: 40px;
+    border-radius: 5px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.editar-evento{
+    border: 1px solid #F4BD50;
+    background-color: #F4BD50;
+}
+.deletar-evento{
+    border: 1px solid #B20000;
+    background-color: #B20000;
+}
+.acoes-evento {
+    display: flex;
+    gap: 10px; /* espaço entre Editar e Deletar */
+}
+@media (max-width: 768px) {
+    .container-eventos-adm {
+      padding: 30px 20px;
+    }
+  
+    .row.align-items-center {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+    }
+  
+    .btn-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  
+    .ocultar, span, .cadastrar {
+      display: inline-block;
+      width: auto;
+      text-align: center;
+    }
+  
+    .cadastrar {
+      width: 100%; /* se quiser manter 100% da largura no mobile */
+      max-width: 200px;
+    }
+  
+    .card-evento {
+      flex-direction: column;
+      align-items: flex-start;
+      height: auto;
+      gap: 10px;
+      padding: 15px;
+    }
+  
+    .card-evento h3 {
+      font-size: 24px;
+    }
+  
+    .acoes-evento {
+      align-self: flex-end;
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+  
+    .card-evento a {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .title-evento-adm p {
+      font-size: 20px;
+    }
+  
+    .title-evento-adm h3 {
+      font-size: 28px;
+    }
+  
+    .card-evento h3 {
+      font-size: 20px;
+    }
+  
+    .card-evento a {
+      font-size: 14px;
+      height: 36px;
+    }
+  }
+  

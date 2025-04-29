@@ -1,0 +1,83 @@
+/* este documento se refere ao header da página em que aparece a logo do centro paula souza, redes sociais, etc. */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgb(255, 255, 255);
+    border-bottom: 1px solid #c4c4c4;
+    padding: 10px 20px;
+}
+
+.logo-fatec-foto {
+    height: 78.4px;
+    width: 327.2px;
+    margin-left: -20;
+}
+
+.redes-sociais-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-right: 20px;
+}
+
+.redes-sociais-icons a img {
+    width: 30px;
+    height: 30px;
+    filter: grayscale(100%);
+}
+
+.governo {
+    font-size: 14px;
+    color: #666666;
+    text-decoration: none;
+    font-family: Verdana;
+    height: 100%;     
+}
+
+.menu-hamburguer {
+    display: none;
+}
+
+/* responsivo */
+@media screen and (max-width: 768px) {
+    header {
+        flex-wrap: wrap;
+    }
+
+    .logo-fatec-foto {
+        width: 191px; 
+        height: 49px;
+    }
+
+    .redes-sociais-icons {
+        display: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .redes-sociais-icons.ativo {
+        display: flex;
+    }
+
+    .menu-hamburguer {
+        display: block;
+        cursor: pointer;
+        margin-left: auto;
+    }
+
+    .menu-hamburguer img {
+        width: 20px;
+        height: 13px;
+    }
+}

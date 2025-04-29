@@ -1,0 +1,102 @@
+.admin-panel-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.admin-panel-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #960018;
+}
+
+.admin-panel-container form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.admin-panel-container label {
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.admin-panel-container input,
+.admin-panel-container select,
+.admin-panel-container textarea {
+  padding: 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-panel-container button {
+  margin-top: 1rem;
+  padding: 0.6rem;
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.admin-panel-container button:hover {
+  background-color: #218838;
+}
+
+.dashboard-btn {
+  background-color: #6c757d;
+  margin-left: 0;
+  margin-top: 0.5rem;
+}
+
+.dashboard-btn:hover {
+  background-color: #5a6268;
+}
+
+@media (min-width: 600px) {
+  .admin-panel-container button {
+    width: auto;
+  }
+
+  .dashboard-btn {
+    margin-left: 1rem;
+    margin-top: 0;
+  }
+
+  .admin-panel-container .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-panel-container,
+  .create-project-container,
+  .edit-projects-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+}
+
+.card-admin {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.03);
+  font-size: 1rem;
+  color: #212529;
+}

@@ -1,0 +1,382 @@
+/* popup */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    max-width: 900px;
+    width: 100%;
+    max-height: 250px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+.popup-content h5 {
+    color: #004854;
+    font-size: 30px;
+    margin: 0;
+}
+
+.popup-content .btn-success {
+    background-color: #0B9247;
+    border-color: #0B9247;
+    font-size: 18px;
+    width: 250px;
+    height: 50px;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content .btn-success:hover {
+    background-color: #097e3c;
+    border-color: #097e3c;
+}
+
+/* divisao */
+.divider-verde {
+    margin: 0;
+    padding: 0; 
+    border-top: 20px solid #61C454; 
+    width: 100%;
+    position: relative;
+    top: 0;
+   
+}
+
+
+/* form */
+.container-form-student {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    margin-bottom: 100px;
+    padding-top: 0;
+    margin-top: 0; 
+}
+
+.form-student {
+    width: 100%;
+    padding: 1rem 0;
+}
+
+.title-form-student {
+    color: #004854;
+    margin-top: 10px;
+}
+
+.divider {
+    background-color: #004854;
+    height: 1.5px;
+}
+
+.form-grid {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.foto-container {
+    flex-shrink: 0;
+}
+
+.photo-box {
+    width: 180px;
+    height: 180px;
+    border-radius: 8px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.photo-box svg {
+    width: 48px;
+    height: 48px;
+    fill: #004854;
+}
+
+.info-container {
+    flex: 1;
+}
+
+/* Toggle buttons DSM / GE */
+.toggle-group {
+    display: flex;
+    border: 1px solid #004854;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.toggle-group button {
+    background: white;
+    color: #004854;
+    font-weight: bold;
+    padding: 0.4rem 1.5rem;
+    border: 1px solid transparent;
+    outline: none;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.toggle-group button:hover {
+    background-color: #004854;
+    color: white;
+    border: 1px solid #004854;
+}
+
+.toggle-group .active {
+    background-color: #004854;
+    color: white;
+    border: 1px solid #004854;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #004854;
+    font-size: 18px;
+    line-height: 1.2;
+    height: 100%;
+}
+
+.check-lider {
+    accent-color: #004854;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border-radius: 30px;
+}
+
+/* CAMPOS */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: 800px; /* igual ao inp-nome */
+    
+}
+
+.form-row .col-6 {
+    flex: 1;
+}
+
+.form-row .form-field input {
+    width: 100%;
+}
+.form-field {
+    width: 100%;
+}
+
+.inp-nome {
+    width: 800px;
+}
+
+.styled-input {
+    border: 1px solid #004854;
+    border-radius: 8px;
+    padding: 0.5rem 0.8rem;
+    font-size: 1rem;
+    color: #004854;
+    background-color: white;
+    outline: none;
+    transition: border 0.2s;
+    margin-top: 15px;
+}
+
+.styled-input::placeholder {
+    font-weight: bold;
+    color: #004854;
+    opacity: 1;
+}
+
+.styled-input:focus {
+    border-color: #007d9f;
+    box-shadow: 0 0 0 2px rgba(0, 72, 84, 0.2);
+}
+.row-final {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 60px;
+    margin-top: 15px;
+  }
+  
+  /* Campo de senha */
+  .row-final .campo-final {
+    flex: 1;
+    max-width: 400px;
+  }
+  
+  /* Botões */
+  .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  /* Botão cadastrar */
+  .button-group .btn-success {
+    padding: 0.5rem 2rem;
+    min-width: 210px;
+    font-weight: bold;
+    background-color: #61C454;
+    border: none;
+  }
+  
+  .button-group .btn-warning{
+    padding: 0.5rem 2rem;
+    min-width: 210px;
+    font-weight: bold;
+    background-color: #F4BD50;
+    border: none;
+    color: white;
+  }
+
+  /* Botão cancelar */
+  .button-group .btn-outline-danger {
+    min-width: 120px;
+    font-weight: bold;
+    border: 2px solid #a90000;
+    color: #a90000;
+    background-color: transparent;
+  }
+  
+  .button-group .btn-outline-danger:hover {
+    background-color: #fcecec;
+    color: #a90000;
+  }
+  
+  
+/* Responsividade */
+@media (max-width: 1024px) {
+    .form-grid {
+        flex-direction: column; 
+        gap: 1.5rem; 
+    }
+
+    .foto-container {
+        width: 100%; 
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    .photo-box {
+        width: 100%; 
+        max-width: 180px;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .inp-nome, .inp-ra, .inp-data, .inp-sem, .inp-email {
+        width: 100%; 
+        min-width: 0; 
+    }
+
+    .toggle-group {
+        flex-direction: column; 
+        width: 100%; 
+        border-radius: 5px; 
+    }
+
+    .toggle-group button {
+        padding: 0.4rem 1rem;
+        border: 1px solid #004854; 
+    }
+
+    .row-final .button-group {
+        width: 100%;
+        justify-content: space-between; 
+    }
+}
+
+@media (max-width: 768px) {
+    .container-form-student {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .form-grid {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .foto-container {
+        width: 100%;
+        max-width: 150px;
+        margin: 0 auto;
+    }
+
+    .photo-box {
+        width: 100%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .inp-nome, .inp-ra, .inp-data, .inp-sem {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .toggle-group {
+        flex-direction: column;
+        width: 60%;
+    }
+
+    .toggle-group button {
+        width: 100%;
+        padding: 0.3rem;
+    }
+
+    .row-final {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin-left: 0 !important; 
+    }
+
+    .row-final .campo-final {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0 !important;
+    }
+
+    .row-final .button-group {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-left: 0 !important;
+    }
+
+    .btn-success, .btn-outline-danger {
+        width: 100%;
+        max-width: 250px;
+        margin-left: 0 !important;
+    }
+}

@@ -1,0 +1,497 @@
+.container-project-card {
+    width: 100%;
+    display: flex;
+    justify-content: center; 
+    padding: 20px; 
+  }
+  
+/* MINIMIZADO */
+  .card-project-minimizado {
+    display: flex;
+    align-items: center;
+    border: 1px solid #808080;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    justify-content: flex-start;
+    max-width: 1200px; 
+    width: 100%; 
+    min-height: 200px;
+    flex-wrap: wrap; 
+  }
+  
+  .project-img img {
+    width: 150px;
+    height: 150px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-right: 20px;
+  }
+  
+  .infos-proj {
+    flex-grow: 1;
+    margin-top: 0;
+    flex: 1; /* ocupa o restante do espaço */
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 150px - 20px); /* garante que haja espaço para quebrar */
+  }
+  
+  .top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .nome {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+    color: #808080;
+  }
+  
+  .titulo-e-turma {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .turma {
+    font-size: 18px;
+    color: #808080;
+    margin: 2px 0 0;
+  }
+  
+  .members img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 5px;
+    border: 2px solid white;
+  }
+  
+  .members {
+    margin-top: 10px;
+    display: flex;
+  }
+  
+  .acoes {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap; 
+    margin-left: -10px; 
+  }
+  
+  .status {
+    font-size: 16px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  
+  .status.ativo {
+    background-color: white;
+    color: #61C454;
+    border: 2px solid #61C454;
+    border-radius: 5px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 100px;
+  }
+
+  .status.desativo {
+    background-color: white;
+    color: #B20000;
+    border: 2px solid #B20000;
+    border-radius: 5px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 100px;
+  }
+  
+  
+  .editar {
+    background-color: #F4BD50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 40px;
+    width: 100px;
+  }
+  
+  .deletar {
+    background-color: #B20000;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 40px;
+    width: 100px;
+  }
+  
+  .expandir img {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    margin-left: auto;
+  }
+
+  /* MAXIMIZADO */
+
+  .borda {
+    border: 1px solid #808080;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    background-color: #fff;
+    padding: 20px; /* ⬅️ move o padding pra cá */
+  }
+  
+  .card-maximizado {
+    width: 100%;
+    background-color: #fff;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    /* padding REMOVIDO daqui */
+  }
+  
+  /* Botões de ação fora da borda */
+  .acoes-fora {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+  
+  .acoes-fora .editar,
+  .acoes-fora .deletar {
+    height: 40px;
+    width: 100px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .acoes-fora .editar {
+    background-color: #f4bd50;
+    color: white;
+  }
+  
+  .acoes-fora .deletar {
+    background-color: #b20000;
+    color: white;
+  }
+  
+  .destaque {
+    display: flex;
+    gap: 8px; /* Espaçamento entre os itens */
+    margin-top: 10px;
+    flex-wrap: wrap; /* Opcional: quebra linha se precisar */
+
+  }
+  
+  .destaque p {
+    height: 30px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    border: 1.5px solid ;
+    border-radius: 5px;
+    max-width: 200px;
+    width: 100%;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #4a4a4a;
+  }
+  
+  .destaque .classificacao{
+    background-color: #F4BD50;
+    color: white;
+    font-weight: 700;
+  }
+
+  .destaque .eventos{
+    color: #808080;
+    border-color: #808080;
+    font-weight: 700;
+
+  }
+  .ativo-expanded{
+    background-color: white;
+    color: #61C454;
+    border: 2px solid #61C454;
+    border-radius: 5px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    width: 150px;
+    margin-bottom: 5px;
+  }
+  
+  .project-img-expanded {
+    position: relative;
+    width: 150px;
+    height: 150px;
+  }
+  
+  .project-img-expanded img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px; /* opcional pra suavizar a imagem */
+  }
+  .top-info-expanded {
+    display: flex;
+    justify-content: flex-end; /* Alinha a seta à direita */
+    align-items: flex-start; /* Alinha pela parte de cima */
+    height: 30px; /* altura igual ao status ou o que for necessário */
+  }
+  
+  .areas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas iguais */
+    gap: 10px;
+    width: 100%;
+    margin-top: 5px;
+  }
+  
+  .areas p {
+    background-color: #808080;
+    height: 40px;
+    text-align: center;
+    color: white;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+  }
+  
+  .linhas p{
+    background-color: white;
+    border: 3px solid #808080;
+    color: #808080;
+    font-size: 17px;
+    height: 70px;
+    max-width: 350px;
+    width: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+  }
+
+  .linhas {
+    display: flex;
+    gap: 20px; /* Espaço entre os parágrafos */
+    flex-wrap: wrap; /* Pra quebrar em linha nova se faltar espaço */
+    justify-content: center; /* Centraliza horizontalmente (opcional) */
+  }
+  .acoes-fora{
+    margin-top: 20px;
+    align-items: baseline;
+    text-align: right;
+    justify-content: flex-end;
+    display: flex;
+  }
+  
+  .editar-expanded {
+    background-color: #F4BD50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 40px;
+    width: 300px;
+  }
+  
+  .deletar-expanded {
+    background-color: #B20000;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 40px;
+    width: 300px;
+  }
+ /* Media Queries */
+@media screen and (max-width: 768px) {
+    .card-project-minimizado {
+      flex-direction: column; 
+      align-items: flex-start;
+      padding: 15px 10px;
+    }
+  
+    .project-img img {
+      width: 120px;
+      height: 120px;
+      margin-right: 0;
+      margin-bottom: 15px; 
+    }
+  
+    .top-info {
+      flex-direction: column; 
+      align-items: flex-start;
+      gap: 10px;
+    }
+  
+    .nome {
+      font-size: 18px; 
+    }
+  
+    .turma {
+      font-size: 16px; 
+    }
+  
+    .acoes {
+      margin-left: 0; 
+      gap: 15px; 
+    }
+  
+    .members {
+      margin-top: 15px;
+    }
+  
+    .status {
+      font-size: 14px;
+      padding: 4px 10px;
+    }
+  
+    .editar, .deletar {
+      width: 80px;
+    }
+  
+    .expandir img {
+      width: 12px;
+      height: 12px;
+    }
+  
+    /* Modo expandido */
+    .card-maximizado {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .project-img-expanded {
+      width: 120px;
+      height: 120px;
+    }
+  
+    .ativo-expanded {
+      width: 120px;
+      font-size: 14px;
+    }
+  
+    .middle-info {
+      flex-direction: column;
+    }
+  
+    .destaque {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  
+    .destaque p {
+      max-width: 100%;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  
+    .areas {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .linhas p {
+      font-size: 15px;
+      height: auto;
+      padding: 10px;
+      max-width: 100%;
+    }
+  
+    .editar-expanded,
+    .deletar-expanded {
+      width: 150px;
+    }
+  
+    .acoes-fora {
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    .project-img img {
+      width: 100px;
+      height: 100px;
+    }
+  
+    .nome {
+      font-size: 16px; 
+    }
+  
+    .top-info {
+      gap: 5px; 
+    }
+  
+    .acoes {
+      gap: 10px; 
+    }
+  
+    .editar, .deletar {
+      width: 70px; 
+    }
+  
+    /* Modo expandido */
+    .project-img-expanded {
+      width: 100px;
+      height: 100px;
+    }
+  
+    .ativo-expanded {
+      font-size: 12px;
+      width: 100px;
+    }
+  
+    .areas {
+      grid-template-columns: 1fr;
+    }
+  
+    .destaque p {
+      font-size: 0.8rem;
+    }
+  
+    .editar-expanded,
+    .deletar-expanded {
+      width: 130px;
+      font-size: 14px;
+    }
+  }
+  

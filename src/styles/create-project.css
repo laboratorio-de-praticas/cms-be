@@ -1,0 +1,578 @@
+.container-projeto {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 12px;
+  font-family: Arial, sans-serif;
+}
+
+.container-projeto h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #003B5C;
+}
+
+.foto-turma {
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.divider-azul {
+  margin: 0;
+  padding: 0; 
+  border-top: 20px solid #034EA2; 
+  width: 100%;
+  position: relative;
+  top: 0;
+}
+
+/* Toggle buttons DSM / GE */
+.toggle-group {
+  display: flex;
+  border: 1px solid #004854;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.btnbranco {
+  background: white;
+  color: #004854;
+  font-weight: bold;
+  padding: 0.4rem 1.5rem;
+  border: 1px solid transparent;
+  outline: none;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.toggle-group button:hover {
+  background-color: #004854;
+  color: white;
+  border: 1px solid #004854;
+}
+
+.toggle-group .active {
+  background-color: #004854;
+  color: white;
+  border: 1px solid #004854;
+}
+.btnazul{
+  background: #004854;
+  color: white;
+  font-weight: bold;
+  padding: 0.4rem 1.5rem;
+  border: 1px solid transparent;
+  outline: none;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.styled-input {
+  border: 1px solid #004854;
+  border-radius: 5px;
+  padding: 0 12px;
+  font-weight: bold;
+  color: #004854;
+  height: 40px;
+}
+
+.styled-input::placeholder {
+  color: #004854;
+  font-weight: bold;
+}
+
+/* Tamanhos personalizados */
+.styled-input.equipe {
+  width: 320px;
+}
+
+.semestre-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #004854;
+  border-radius: 5px;
+  padding: 8px 12px;
+  width: 300px;
+  height: 40px;
+}
+
+.semestre-label {
+  color: #004854;
+  margin-right: 8px;
+}
+
+.input-semestre {
+  border: none;
+  outline: none;
+  color: #004854;
+  width: 60px;
+  text-align: center;
+  background-color: transparent;
+}
+
+.input-ano {
+  margin-right: 8px;
+  
+}
+
+.input-num {
+  margin-left: 8px;
+  color: #004854;
+}
+
+.separator {
+  color: #004854;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+
+.styled-input.nomeproj {
+  width: 810px;
+}
+
+.styled-input.resumo {
+  margin-top: 15px;
+  width: 810px;
+  height: 100px;
+  position: relative;
+}
+
+.resumo::placeholder {
+  position: absolute;
+  top: 10px; 
+  left: 10px;
+  color: #004854;  
+  transition: 0.3s ease; 
+}
+
+.foto-container {
+    flex-shrink: 0;
+}
+
+.photo-box {
+    width: 180px;
+    height: 180px;
+    border-radius: 8px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.photo-box svg {
+    width: 48px;
+    height: 48px;
+    fill: #004854;
+}
+
+.btn-cadastrar {
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #1A6C7C;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-cadastrar:hover {
+  background-color: #165a68;
+}
+
+.row-border{
+  border-radius: 5px;
+  border: 1px solid #004854;
+}
+
+.btn-add {
+  padding: 10px 20px;
+  background-color: #61C454;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+  height: 40px;
+  margin-top: 50px;
+}
+
+.btn-add:hover {
+  background-color: #218838;
+}
+
+.evento{
+  background-image: url("../../public/imgs/eve.png");
+  background-repeat: no-repeat;
+  width: 90%;
+  height: 90px;
+  border-radius: 10px;
+}
+
+.btn-inscri{
+  width: 150px;
+  height: 40px;
+  background-color: #003a5c00;
+  color: #fff;
+  border: #B20000 2px solid;
+  font-weight: bold;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-inscri-y{
+  width: 150px;
+  height: 40px;
+  background-color: #B20000;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.title-event{
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  flex: 1;
+}
+
+.search-icon {
+  position: absolute;
+  top: 75%;
+  left: 10px; 
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  pointer-events: none; 
+}
+
+.search {
+  width: 100%;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid #004854;
+  padding-left: 35px;
+  box-sizing: border-box; 
+  margin-top: 50px;
+  /* margin-left: 60px; */
+}
+
+.search::placeholder {
+  color: #004854;
+  padding-left: 0; 
+}
+
+.title-proj{
+  text-align: center;
+  color: #004854;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.pesquisa, .areaconj, .extensao {
+  margin-bottom: 70px;
+}
+
+/* Ajustes gerais para o checkbox */
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  margin: 0 0 2px 16px !important; /* topo, direita, baixo, esquerda */
+  align-self: center;
+  cursor: pointer;
+}
+
+/* Estilo da label */
+.form-check-label {
+  line-height: 1.4;
+  margin-right: auto; 
+}
+
+/* Ajustes para centralizar as colunas */
+.areaconj .d-flex {
+  justify-content: center; 
+  flex-wrap: wrap;
+  gap: 0.5rem; 
+}
+
+.areaconj .col-md-5 {
+  max-width: 300px; 
+}
+
+.areaconj {
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+  width: 100%;
+}
+
+/* pesquisa */
+/* Container dos cards */
+.row.pesquisa {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.1rem;
+}
+
+/* Card do aluno */
+.aluno-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #004854;
+  border-radius: 5px;
+  padding: 10px 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 280px;
+  width: 100%;
+  flex: 1 1 calc(33.333% - 1rem);
+  box-sizing: border-box;
+  height: 70px;
+  margin-bottom: 20px;
+}
+
+/* Foto do aluno */
+.foto-aluno {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Nome do aluno */
+.nome-aluno {
+  flex-grow: 1;
+  margin: 0;
+  font-weight: 500;
+  color: #004854;
+  word-break: break-word; /* Adicionado para quebrar palavras longas */
+  overflow-wrap: break-word; /* Compatibilidade extra */
+}
+
+
+/* Ícone de excluir */
+.icone-excluir {
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .container-projeto {
+    padding: 1rem;
+  }
+
+  /* FOTO E TOPO */
+  .foto-turma {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .foto-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .photo-box {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+  }
+
+  .info-container {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .info-container > .d-flex {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  /* CAMPOS DE TEXTO */
+  .form-field,
+  .toggle-group,
+  .semestre-group {
+    width: 100%;
+  }
+
+  .styled-input,
+  .styled-input::placeholder,
+  .search {
+    font-size: 1rem;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .styled-input {
+    margin-bottom: 10px;
+  }
+
+  .styled-input.nomeproj,
+  .styled-input.resumo,
+  .styled-input.equipe {
+    width: 100% !important;
+  }
+
+  .resumo {
+    height: 120px;
+    width: 100% !important;
+  }
+
+  /* TOGGLE DSM/GE */
+  .toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .toggle-group .btnbranco,
+  .toggle-group .btnazul {
+    width: 100%;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  /* SEMESTRE */
+  .semestre-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .input-ano,
+  .input-num {
+    max-width: 80px;
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  .semestre-label {
+    font-size: 0.95rem;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+
+  .separator {
+    padding: 0 4px;
+  }
+
+  /* TÍTULOS */
+  .container-projeto h2,
+  .title-event,
+  .title-proj {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  /* PESQUISA */
+  .pesquisa {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+  }
+
+  .search-wrapper {
+    flex: 1 1 75%;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .search {
+    margin-top: 15px;
+    margin-left: 0;
+    padding-left: 40px;
+  }
+
+  .search-icon {
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn-add {
+    flex: 1 1 20%;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    height: 38px;
+    margin-top: 15px;
+    white-space: nowrap;
+  }
+
+  /* BOTÕES GERAIS */
+  .btn-cadastrar,
+  .btn-inscri,
+  .btn-inscri-y {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+
+  /* EVENTO */
+  .evento {
+    width: 100%;
+    height: 100px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* CHECKBOX E ÁREAS */
+  .areaconj .d-flex {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .areaconj .col-md-5 {
+    max-width: 100%;
+  }
+
+  .areaconj {
+    flex-direction: column;
+    padding: 0 1rem;
+  }
+
+  /* CARDS DE ALUNO */
+  .aluno-card {
+    flex: 1 1 calc(50% - 1rem);
+  }
+}

@@ -1,0 +1,17 @@
+.bem-vindo-container {
+    color: #004854;
+    padding: 50px 20px;
+}
+
+.bem-vindo {
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.cms {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: left;
+}

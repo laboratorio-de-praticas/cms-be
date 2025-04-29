@@ -1,0 +1,253 @@
+.container-cadevento {
+    padding: 30px;
+}
+
+.title-cadevento {
+    color: #004854;
+}
+
+.title-evento p {
+    font-size: 25px;
+}
+
+h3 {
+    font-size: 35px;
+    margin-top: -20px;
+}
+
+.status-desativar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+    height: 100%;
+    flex-wrap: nowrap;
+    min-height: 40px;
+}
+
+.status, .desativar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    font-size: 18px;
+    border-radius: 5px;
+}
+
+.status p {
+    color: white;
+    font-weight: bold;
+    background-color: #61C454;
+    text-align: center;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border-radius: 5px;
+    margin: 0;
+    line-height: 40px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.status-des p {
+    color: white;
+    font-weight: bold;
+    background-color: #B20000 !important;
+    text-align: center;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border-radius: 5px;
+    margin: 0;
+    line-height: 40px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.desativar {
+    color: white;
+    font-weight: bold;
+    background-color: white;
+    text-align: center;
+    min-width: 100px;
+    border: 2px solid #B20000;
+    color: #B20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+}
+
+.ativar {
+    color: white;
+    font-weight: bold;
+    background-color: white;
+    text-align: center;
+    min-width: 100px;
+    border: 2px solid #61C454;
+    color: #61C454;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    border-radius: 5px;
+}
+
+/* Formulário */
+.row {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-6:first-child .title-cadevento {
+    text-align: left;
+}
+
+.photo-box {
+    width: 100%;
+    height: 120px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+}
+
+.photo-box:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.divider-cadevento {
+    height: 2px;
+    background-color: #004854;
+    margin-top: 1%;
+}
+
+input {
+    border: 1px solid #004854;
+    border-radius: 5px;
+    background-color: white;
+    height: 40px;
+    width: 100%;
+}
+
+input::placeholder {
+    color: #004854;
+    font-weight: bold;
+}
+
+textarea {
+    border: 1px solid #004854;
+    border-radius: 5px;
+    background-color: white;
+    height: 100px;
+    width: 100%;
+}
+
+textarea::placeholder {
+    color: #004854;
+    font-weight: bold;
+}
+
+.nome-evento,
+.tipo-evento,
+.semestre-evento,
+.ano-semestre-evento {
+    max-width: 100%;
+    width: 100%;
+}
+
+.tipo-evento,
+.ano-semestre-evento {
+    margin-left: 0;
+}
+
+.concluir-evento,
+.cancelar-evento,
+.editar-evento {
+    background-color: #61C454;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #61C454;
+    height: 40px;
+    width: 100%;
+    border-radius: 5px;
+}
+
+.editar-evento {
+    background-color: #F4BD50;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #F4BD50;
+    height: 40px;
+}
+
+.cancelar-evento {
+    background-color: #B20000;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #B20000;
+    height: 40px;
+    margin-left: 0  ;
+}
+
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column !important;
+        align-items: stretch;
+    }
+
+    .col-6 {
+        width: 100%;
+        padding: 0;
+    }
+
+    .status-desativar {
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .status p,
+    .desativar,
+    .ativar {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .tipo-evento,
+    .ano-semestre-evento,
+    .cancelar-evento {
+        margin-left: 0;
+        margin-top: 15px;
+    }
+
+    .concluir-evento,
+    .cancelar-evento {
+        max-width: 100%;
+    }
+
+    .photo-box {
+        height: 100px;
+    }
+
+    h3 {
+        font-size: 28px;
+        margin-top: -10px;
+    }
+
+    .title-cadevento p {
+        font-size: 20px;
+    }
+}

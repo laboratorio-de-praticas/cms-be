@@ -1,0 +1,198 @@
+
+/* btn duplo */
+.btn-group{
+  height: 40px;
+}
+/* botão lado cinza */
+.btn-cinza {
+  background-color: #004854;
+  color: white;
+  border-radius: 5px;
+  
+}
+
+/* botão lado branco */
+.btn-branco {
+  background-color: white;
+  color: #004854;
+  border-radius: 5px;
+  border-color: #004854;
+
+}
+
+.container-filtros-dsm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.linha-filtros-dsm {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+/* dropdown */
+.custom-dropdown-dsm {
+  position: relative;
+  display: flex;
+  width: 160px;
+  height: 40px;
+  margin-left: 0px;
+  
+}
+
+.dropdown-select-dsm {
+  width: 100%;
+  height: 100%;
+  padding: 6px 35px 6px 12px;
+  border: 1px solid #004854;
+  border-radius: 5px;
+  appearance: none;
+  background-color: white;
+  font-size: 16px;
+  color: #808080;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-select-dsm:hover {
+  background-color: #f2f2f2;
+}
+
+.dropdown-arrow-dsm {
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 12px;
+  height: auto;
+}
+
+/* barra de pesquisa */
+.search-bar-dsm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 20px;
+}
+
+.search-input-container-dsm {
+  position: relative;
+  width: 580px;
+  height: 40px;
+}
+
+.search-input-dsm {
+  width: 100%;
+  height: 100%;
+  padding-left: 45px;
+  border: 1px solid #004854;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #333;
+  background-color: white;
+  outline: none;
+}
+
+.search-input-dsm::placeholder {
+  color: #808080;
+}
+
+.search-input-dsm:focus {
+  border: 1px solid #004854;
+  box-shadow: none;
+  outline: none;
+}
+
+.search-icon-dsm {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 25px;
+}
+
+.search-button-dsm {
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #004854;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.search-button-dsm:hover {
+  background-color: #6e6e6e;
+}
+
+
+.btn-check:checked + .btn {
+  background-color: #004854; /* azul */
+  color: white;
+  border-color: #004854;
+}
+
+/* Alinha melhor os elementos em linha */
+.custom-dropdown-dsm + .btn-group {
+  margin-left: 10px;
+}
+
+
+
+/* responsivo */
+@media (max-width: 768px) {
+  .container-filtros-dsm .row {
+    flex-direction: column;
+  }
+
+  .container-filtros-dsm .col-12.d-flex {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-group,
+  .custom-dropdown-dsm,
+  .search-bar-dsm,
+  .linha-cadastro-dsm {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .search-input-container-dsm {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .search-bar-dsm {
+    flex-direction: column;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  .search-button-dsm {
+    width: 100%;
+  }
+
+  .linha-cadastro-dsm {
+    flex-direction: column;
+  }
+
+  .btn-cadastrar-usuario,
+  .btn-cadastrar-projeto {
+    width: 100%;
+  }
+
+  .custom-dropdown-dsm {
+    margin-left: 0;
+  }
+}

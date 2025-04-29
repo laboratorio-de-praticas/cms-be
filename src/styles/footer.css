@@ -1,0 +1,26 @@
+.logo-fatec-footer {
+    width:200px;
+    height: 90px;
+}
+
+.footer-fundo{
+    background-color: black;
+}
+.grupo-1 {
+  margin-left: 10px;
+}
+
+/* botão aluno */
+.btn-dsm {
+  background-color: #808080;
+  color: white;
+  border-radius: 5px;
+}
+
+/* botão projeto */
+.btn-ge {
+  background-color: white;
+  color: #808080;
+  border-radius: 5px;
+  border-color: #808080;
+}

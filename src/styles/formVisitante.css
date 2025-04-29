@@ -1,0 +1,131 @@
+.container-visitante {
+    padding: 50px;
+    max-width: 700px;
+    width: 100%;
+}
+
+.title-visitante p {
+    font-size: 25px;
+    margin-bottom: -5px;
+}
+
+.title-visitante h3 {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.title-visitante {
+    color: #004854;
+}
+
+.row {
+    margin-top: 20px;
+}
+
+/* Aplica flex apenas na linha dos botões */
+.row:last-child {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.inp-usu,
+.inp-celular {
+    height: 40px;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #004854;
+}
+
+button {
+    height: 40px;
+}
+
+.cadastrar {
+    max-width: 300px;
+    width: 100%;
+    border-radius: 5px;
+    background-color: #61C454;
+    border-color: #61C454;
+    border: 3px solid;
+    color: white;
+    font-weight: bold;
+    
+}
+
+.voltar {
+    max-width: 260px;
+    width: 100%;
+    border-radius: 5px;
+    background-color: white;
+    border-color: #B20000;
+    border: 3px solid;
+    color: #B20000;
+    font-weight: bold;
+}
+
+.form-visitante {
+    border: 1px solid #004854;
+    border-radius: 5px;
+    max-width: 700px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+input::placeholder{
+    font-weight: 700;
+    color: #004854;
+}
+/* Responsividade para telas menores que 768px */
+@media (max-width: 768px) {
+    .container-visitante {
+        padding: 20px;
+    }
+
+    .title-visitante p {
+        font-size: 20px;
+    }
+
+    .title-visitante h3 {
+        font-size: 28px;
+    }
+
+    .form-visitante {
+        padding: 15px;
+    }
+
+    .row:last-child {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cadastrar, .voltar {
+        max-width: 100%;
+    }
+}
+
+/* Responsividade para telas muito pequenas (smartphones antigos) */
+@media (max-width: 480px) {
+    .title-visitante p {
+        font-size: 18px;
+    }
+
+    .title-visitante h3 {
+        font-size: 24px;
+    }
+
+    .inp-usu, .inp-celular {
+        font-size: 14px;
+    }
+
+    .cadastrar, .voltar {
+        font-size: 14px;
+        height: 38px;
+    }
+}

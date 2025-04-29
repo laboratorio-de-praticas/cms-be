@@ -1,0 +1,249 @@
+nav {
+    background-color: #B20000;
+    color: white;
+    font-size: 20px;
+    height: 80px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;         
+    gap: 30px;                   
+    padding: 0 30px;             
+  }
+  
+  .navbar-nav {
+    display: flex;
+    align-items: center;        
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .nav-link {
+    color: white;
+    text-decoration: none;
+    padding: 0 12px;
+  }
+  
+  .home-item {
+    font-weight: 400;
+    margin-left: 180px;
+  }
+  
+  .pedidos-item {
+    font-weight: 400;
+  }
+
+  .nav-link.active-page {
+    font-weight: bold;
+    color: white;
+  }
+  
+  
+  .logo-cps-55,
+  .logo-fatec-registro {
+    height: 70px;
+    object-fit: contain;
+  }
+  
+.separador {
+  border-left: 3px solid #000; /* Linha vertical */
+  margin: 0 10px; /* Espaçamento entre as opções */
+  height: 30px; /* Definir a altura do separador */
+}
+
+  
+/* drop */
+.nav-item.dropdown {
+  position: relative; /* Garante que o dropdown-menu se posicione em relação a este item */
+}
+
+.nav-item.dropdown .dropdown-menu {
+  border-radius: 0;
+  background-color: #B20000;
+  top: 100%; /* Garante que fique logo abaixo do botão */
+  margin-top: 23px; /* Ajuste fino da distância */
+  z-index: 1000;
+}
+
+.nav-item.dropdown .dropdown-item {
+  color: white;
+  padding: 10px 20px;
+  text-align: left;
+}
+
+.nav-item.dropdown .dropdown-item:hover {
+  background-color: #9e0000;
+}
+
+.nav-item.dropdown .dropdown-divider {
+  border-color: white;
+}
+
+.nav-item.dropdown .dropdown-item:first-child {
+  box-shadow: 0 4px 6px rgba(178, 0, 0, 0.6);
+}
+
+.nav-item.dropdown .dropdown-toggle::after {
+  display: none !important; /* Remove completamente a seta */
+}
+
+
+  .navbar-nav .nav-link:hover,
+.navbar-nav .nav-link:focus {
+  background-color: transparent !important;
+  color: white !important;
+  text-decoration: none;
+}
+
+
+
+.perfil-box {
+    margin-left: auto; 
+    padding-left: 20px;
+  }
+  
+  .perfil-retangulo {
+    width: 274px;
+    height: 64px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    padding: 7px 15px;
+    border-radius: 8px;
+    gap: 15px;
+  }
+  
+  .foto-perfil {
+    width: 50px;
+    height: 50px;
+    border-radius: 1000%;
+    object-fit: cover;
+  }
+  
+  .info-perfil {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #808080;
+    font-size: 14px;
+    line-height: 1.2;
+    flex: 1; 
+  }
+  
+  .nome-perfil {
+    font-weight: 600;
+  }
+  
+  .turma-perfil {
+    font-weight: 400;
+  }
+
+  .icon-vector {
+    width: 16px; 
+    height: 16px;
+  }
+
+  .hamburguer-btn {
+  background: none;
+  border: none;
+  display: none;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.hamburguer-btn img {
+  width: 20px;
+  height: 13px;
+}
+  /* responsividade */
+@media (max-width: 992px) {
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 10px 20px;
+    gap: 10px;
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .home-item {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .logo-cps-55,
+  .logo-fatec-registro {
+    height: auto;
+    max-width: 80%;
+    margin-bottom: 10px;
+  }
+
+  .separador {
+    display: none; 
+  }
+
+  .nav-link {
+    padding: 8px 0;
+    font-size: 18px;
+  }
+
+  /* Foto de perfil redonda e reduzida */
+  .perfil-retangulo {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .perfil-retangulo .info-perfil,
+  .perfil-retangulo .icon-vector {
+    display: none;
+  }
+
+  /* Botão de hambúrguer */
+  .hamburguer-btn {
+    background: none;
+    border: none;
+    display: block;
+    padding: 8px;
+    margin-left: auto;
+    cursor: pointer;
+  }
+
+  .hamburguer-btn img {
+    width: 20px;
+    height: 13px;
+  }
+
+  /* Menu colapsado aberto */
+  .collapse.navbar-collapse {
+    display: none;
+    width: 100%;
+  }
+
+  .collapse.navbar-collapse.show-menu-navbar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #B20000;
+    padding: 10px 0;
+    width: 100%;
+  }
+
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+
+  .navbar-nav .nav-link {
+    width: 100%;
+    padding: 12px 20px;
+  }
+}

@@ -1,0 +1,279 @@
+.request-board {
+  
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 20px; 
+  }
+  
+  /* header  do request board*/
+  .header-board,
+  .body-board {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+  }
+  
+  
+  .titulo-pedidos {
+    font-size: 16px;
+    color: #004854;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+
+
+  .linha-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .titulo-h2 {
+    font-size: 24px;
+    color: #004854;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .acoes-direita {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .acoes-direita a {
+    font-size: 16px;
+    color: #BFBFBF;
+    text-decoration: none;
+  }
+  
+  .request-board-divider {
+    font-size: 16px;
+    color: #BFBFBF;
+  }
+  
+  .divider-title-board {
+    height: 1px;
+    background-color: #004854;
+    width: 100%;
+  }
+  /* body do request board */
+  .body-board {
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  
+  .turma {
+    margin-bottom: 20px;
+  }
+  
+  .titulo-turma {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .titulo-turma p {
+    font-weight: bold;
+    font-size: 18px;
+    color: #6c757d; /* cinza */
+    margin: 0;
+  }
+  
+  .titulo-turma a {
+    font-size: 14px;
+    color: #6c757d;
+    text-decoration: none;
+  }
+  
+  .turma-divider {
+    height: 1px;
+    background-color: #808080; /* azul da imagem */
+    margin: 8px 0 16px;
+    border-radius: 2px;
+    margin-top: 20px;
+  }
+  
+  .card-request {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #808080;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0px 0px 2px #808080;
+    gap: 16px;
+    max-width: 1200px;
+    width: 100%;
+    height: 80px;
+  }
+  
+  .card-request img {
+    border-radius: 50%;
+    background-color: #ddd;
+  }
+  
+  .data-request{
+    color: #004854;
+     
+  }
+
+  .nome-candidato-request {
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .turma-candidato-request {
+    margin: 0;
+  }
+  
+  .actions-card-request {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  
+  .actions-card-request button {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    width: 120px;
+  }
+  
+  .aceitar{
+    background-color: #0B9247; 
+    color: white;
+  }
+  
+  .recusar {
+    background-color: #B20000; 
+    color: white;
+  }
+  
+  .aceito{
+    background-color: white;
+    border: 1.5px solid #61C454;
+    color: #61C454;
+
+  }
+
+  .revisar{
+    background-color: #F4BD50;
+    border: 1.5px solid #F4BD50;
+    color: white;
+
+  }
+  .actions-card-historic button{
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    width: 120px;
+  }
+
+  .actions-card-historic {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  /* ------------------------------------------------ */
+  /* paginacao */
+  /* paginacao */
+.atual {
+  border-color: #808080;
+  border-radius: 5px;
+  color: #808080;
+  border: 1px solid;
+  width: 30px;
+  height: 30px;
+  
+}
+.anterior{
+  border-radius: 5px;
+  color: white;
+  background-color: #808080;
+  border: none;
+  width: 30px;
+  height: 30px;
+}
+.prox{
+  border-radius: 5px;
+  border: none;
+  color: white;
+  background-color: #808080;
+  width: 30px;
+  height: 30px;
+}
+.pagination{
+display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px; 
+  margin: 20px 0;
+  text-align: center;
+}
+/* responsivo */
+@media (max-width: 768px) {
+  .request-board {
+    padding: 10px;
+  }
+
+  .linha-topo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .titulo-h2 {
+    font-size: 20px;
+  }
+
+  .acoes-direita {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-request {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 12px;
+  }
+
+  .actions-card-request,
+  .actions-card-historic {
+    margin-left: 0;
+    margin-top: 10px;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .actions-card-request button,
+  .actions-card-historic button {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 5px;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .titulo-turma {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
