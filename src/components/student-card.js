@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/components/student-card.js
 import "../styles/student-card.css";
 import React, { useState } from "react";
 // comentario para o back-end: eu tentei fazer a paginacao aqui mas nao sei se esta certa
@@ -13,57 +14,117 @@ const StudentCard = () => {
     "Isabele Queiroz",
     "Ana Carolina",
   ];
+=======
+import "../src/styles/student-card.css";
+import React, { useState, useEffect } from "react";
+>>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
 
+const StudentCard = () => {
+  const [alunos, setAlunos] = useState([]);
   const [formAberto, setFormAberto] = useState({});
   const [detalhesAbertos, setDetalhesAbertos] = useState({});
-  const [dados, setDados] = useState(
-    students.map((name) => ({
-      nome: name,
-      semestre: 4,
-      celular: "",
-      nascimento: "",
-      ingresso: "2023",
-    }))
-  );
-
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itemsPorPagina = 3;
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
 
-  const totalPages = Math.ceil(students.length / itemsPorPagina);
+  // Busca alunos do banco de dados
+  useEffect(() => {
+    const carregarAlunos = async () => {
+      try {
+        const response = await fetch('/api/Alunos/Get_all');
+        const data = await response.json();
+        if (data.dados) {
+          setAlunos(data.dados.map(aluno => ({
+            ...aluno,
+            editando: false,
+            dadosEditados: {
+              nome: aluno.nome || '',
+              curso_semestre: aluno.curso_semestre || '',
+              celular: aluno.celular || '',
+              data_nascimento: aluno.data_nascimento || '',
+              data_ingresso: aluno.data_ingresso || ''
+            }
+          })));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar alunos:", error);
+        setErro("Erro ao carregar alunos");
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    carregarAlunos();
+  }, []);
 
   const toggleFormulario = (index) => {
-    setFormAberto((prev) => ({
+    setFormAberto(prev => ({
       ...prev,
-      [index]: !prev[index],
+      [index]: !prev[index]
     }));
-    setDetalhesAbertos((prev) => ({
+    setDetalhesAbertos(prev => ({
       ...prev,
-      [index]: false,
+      [index]: false
     }));
   };
 
   const toggleDetalhes = (index) => {
-    setDetalhesAbertos((prev) => ({
+    setDetalhesAbertos(prev => ({
       ...prev,
-      [index]: !prev[index],
+      [index]: !prev[index]
     }));
-    setFormAberto((prev) => ({
+    setFormAberto(prev => ({
       ...prev,
-      [index]: false,
+      [index]: false
     }));
   };
 
   const handleChange = (index, campo, valor) => {
-    const novosDados = [...dados];
-    novosDados[index][campo] = valor;
-    setDados(novosDados);
+    const novosAlunos = [...alunos];
+    novosAlunos[index].dadosEditados[campo] = valor;
+    setAlunos(novosAlunos);
   };
 
-  const paginarEstudantes = () => {
+  const salvarAlteracoes = async (index) => {
+    try {
+      const aluno = alunos[index];
+      const response = await fetch(`/api/Alunos/Update/${aluno.id_aluno}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(aluno.dadosEditados)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const novosAlunos = [...alunos];
+        novosAlunos[index] = {
+          ...novosAlunos[index],
+          ...data.alunoAtualizado,
+          dadosEditados: { ...data.alunoAtualizado }
+        };
+        setAlunos(novosAlunos);
+        toggleFormulario(index);
+      } else {
+        throw new Error('Erro ao atualizar aluno');
+      }
+    } catch (error) {
+      console.error("Erro ao salvar alterações:", error);
+      setErro("Erro ao salvar alterações");
+    }
+  };
+
+  
+
+  const paginarAlunos = () => {
     const inicio = (paginaAtual - 1) * itemsPorPagina;
     const fim = inicio + itemsPorPagina;
-    return dados.slice(inicio, fim);
+    return alunos.slice(inicio, fim);
   };
+
+  const totalPages = Math.ceil(alunos.length / itemsPorPagina);
 
   const irParaPagina = (pagina) => {
     if (pagina >= 1 && pagina <= totalPages) {
@@ -71,26 +132,24 @@ const StudentCard = () => {
     }
   };
 
+  if (carregando) return <div className="loading">Carregando alunos...</div>;
+  if (erro) return <div className="error">{erro}</div>;
+
   return (
     <div className="student-container-fluid container-students">
       <div className="student-card-wrapper">
-        {paginarEstudantes().map((_, index) => (
-          <div className="student-row" key={index}>
-            <div
-              className={`student-card 
-                ${formAberto[index] ? "expanded" : ""} 
-                ${
-                  detalhesAbertos[index] && !formAberto[index]
-                    ? "details-open"
-                    : ""
-                }
-              `}
-            >
-              {/*  EDIÇÃO */}
+        {paginarAlunos().map((aluno, index) => (
+          <div className="student-row" key={aluno.id_aluno}>
+            <div className={`student-card ${formAberto[index] ? "expanded" : ""} ${detalhesAbertos[index] ? "details-open" : ""}`}>
+              
+              {/* MODO EDIÇÃO */}
               {formAberto[index] && (
-                <form className="student-form inside-card">
+                <form className="student-form inside-card" onSubmit={(e) => {
+                  e.preventDefault();
+                  salvarAlteracoes(index);
+                }}>
                   <div className="form-avatar">
-                    <img src="/imgs/foto-perfil.png" alt="Foto" />
+                    <img src={aluno.foto_url || "/imgs/foto-perfil.png"} alt="Foto" />
                   </div>
                   <div className="form-fields">
                     <div className="field-group">
@@ -99,32 +158,29 @@ const StudentCard = () => {
                           <input
                             type="radio"
                             className="btn-check"
-                            name={`options-${index}`}
-                            id={`option1-${index}`}
-                            autoComplete="off"
+                            name={`curso-${aluno.id_aluno}`}
+                            id={`dsm-${aluno.id_aluno}`}
+                            checked={aluno.dadosEditados.curso_semestre?.toLowerCase().includes('dsm')}
+                            onChange={() => handleChange(index, 'curso_semestre', 'DSM')}
                           />
-                          <label
-                            className="btn btn-amarelo-curso"
-                            htmlFor={`option1-${index}`}
-                          >
+                          <label className="btn btn-amarelo-curso" htmlFor={`dsm-${aluno.id_aluno}`}>
                             DSM
                           </label>
                           <input
                             type="radio"
                             className="btn-check"
-                            name={`options-${index}`}
-                            id={`option2-${index}`}
-                            autoComplete="off"
+                            name={`curso-${aluno.id_aluno}`}
+                            id={`ge-${aluno.id_aluno}`}
+                            checked={aluno.dadosEditados.curso_semestre?.toLowerCase().includes('ge')}
+                            onChange={() => handleChange(index, 'curso_semestre')}
                           />
-                          <label
-                            className="btn btn-branco-curso"
-                            htmlFor={`option2-${index}`}
-                          >
+                          <label className="btn btn-branco-curso" htmlFor={`ge-${aluno.id_aluno}`}>
                             GE
                           </label>
                         </div>
                       </div> */}
                       <div className="semestre-container">
+<<<<<<< HEAD:src/components/student-card.js
                         <label className="semestre-label">
                           Turma Atual:
                         </label>
@@ -135,6 +191,14 @@ const StudentCard = () => {
                           onChange={(e) =>
                             handleChange(index, "semestre", e.target.value)
                           }
+=======
+                        <label className="semestre-label">Semestre:</label>
+                        <input
+                          className="semestre-input"
+                          type="number"
+                          value={aluno.dadosEditados.semestre || ''}
+                          onChange={(e) => handleChange(index, 'semestre', e.target.value)}
+>>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
                         />
                       </div>
                     </div>
@@ -143,12 +207,9 @@ const StudentCard = () => {
                       <label className="nome-label">Nome:</label>
                       <input
                         className="nome-input"
-                        name="nome"
                         type="text"
-                        value={dados[index].nome}
-                        onChange={(e) =>
-                          handleChange(index, "nome", e.target.value)
-                        }
+                        value={aluno.dadosEditados.nome}
+                        onChange={(e) => handleChange(index, 'nome', e.target.value)}
                       />
                     </div>
 
@@ -158,42 +219,34 @@ const StudentCard = () => {
                         <input
                           type="tel"
                           className="celular-input"
-                          value={dados[index].celular}
-                          onChange={(e) =>
-                            handleChange(index, "celular", e.target.value)
-                          }
+                          value={aluno.dadosEditados.celular}
+                          onChange={(e) => handleChange(index, 'celular', e.target.value)}
                         />
                       </div>
                       <div className="nascimento-container">
-                        <label className="nascimento-label">
-                          Data de nascimento:
-                        </label>
+                        <label className="nascimento-label">Nascimento:</label>
                         <input
+                          type="date"
                           className="nascimento-input"
-                          value={dados[index].nascimento}
-                          onChange={(e) =>
-                            handleChange(index, "nascimento", e.target.value)
-                          }
+                          value={aluno.dadosEditados.data_nascimento}
+                          onChange={(e) => handleChange(index, 'data_nascimento', e.target.value)}
                         />
                       </div>
                     </div>
 
                     <div className="field-group">
                       <div className="ingresso-container">
-                        <label className="ingresso-label">
-                          Ano de Ingresso:
-                        </label>
+                        <label className="ingresso-label">Ingresso:</label>
                         <input
+                          type="date"
                           className="ingresso-input"
-                          value={dados[index].ingresso}
-                          onChange={(e) =>
-                            handleChange(index, "ingresso", e.target.value)
-                          }
+                          value={aluno.dadosEditados.data_ingresso}
+                          onChange={(e) => handleChange(index, 'data_ingresso', e.target.value)}
                         />
                       </div>
                       <div className="form-actions">
-                        <button type="button" className="editar-button">
-                          Editar
+                        <button type="submit" className="editar-button">
+                          Salvar
                         </button>
                         <button
                           type="button"
@@ -208,63 +261,61 @@ const StudentCard = () => {
                 </form>
               )}
 
-              {/* DETALHES */}
+              {/* MODO DETALHES */}
               {!formAberto[index] && detalhesAbertos[index] && (
                 <div className="student-details-view">
                   <div className="form-avatar">
-                    <img src="/imgs/foto-perfil.png" alt="Avatar do aluno" />
+                    <img src={aluno.foto_url || "/imgs/foto-perfil.png"} alt="Avatar" />
                   </div>
 
                   <div className="student-details">
                     <div className="detail-line">
                       <p className="nome-detalhe">
-                        <strong>Nome:</strong> {dados[index].nome}
+                        <strong>Nome:</strong> {aluno.nome || "Não informado"}
                       </p>
                     </div>
 
                     <div className="detail-line cel-nasc-line">
                       <p className="cel-detalhe">
-                        <strong>Celular:</strong>{" "}
-                        {dados[index].celular || "Não informado"}
+                        <strong>Celular:</strong> {aluno.celular || "Não informado"}
                       </p>
                       <p className="nasc-detalhe">
-                        <strong>Nascimento:</strong>{" "}
-                        {dados[index].nascimento || "Não informado"}
+                        <strong>Nascimento:</strong> {aluno.data_nascimento || "Não informado"}
                       </p>
                     </div>
 
                     <div className="detail-line ingresso-sem-curso">
                       <p className="ingresso-detalhe">
-                        <strong>Ingresso:</strong> {dados[index].ingresso}
+                        <strong>Ingresso:</strong> {aluno.data_matricula}
                       </p>
                       <p className="sem-detalhe">
+<<<<<<< HEAD:src/components/student-card.js
                         <strong>Turma Atual:</strong> {dados[index].semestre}
+=======
+                        <strong>Semestre:</strong> {aluno.curso_semestre}
+>>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
                       </p>
                       {/* <div className="btn-group" role="group">
                         <input
                           type="radio"
                           className="btn-check"
-                          name={`options-detalhes-${index}`}
-                          id={`option1-detalhes-${index}`}
-                          autoComplete="off"
+                          name={`curso-detalhe-${aluno.id_aluno}`}
+                          id={`dsm-detalhe-${aluno.id_aluno}`}
+                          checked={aluno.curso_semestre?.toLowerCase().includes('dsm')}
+                          readOnly
                         />
-                        <label
-                          className="btn btn-color-curso"
-                          htmlFor={`option1-detalhes-${index}`}
-                        >
+                        <label className="btn btn-color-curso" htmlFor={`dsm-detalhe-${aluno.id_aluno}`}>
                           DSM
                         </label>
                         <input
                           type="radio"
                           className="btn-check"
-                          name={`options-detalhes-${index}`}
-                          id={`option2-detalhes-${index}`}
-                          autoComplete="off"
+                          name={`curso-detalhe-${aluno.id_aluno}`}
+                          id={`ge-detalhe-${aluno.id_aluno}`}
+                          checked={aluno.curso_semestre?.toLowerCase().includes('ge')}
+                          readOnly
                         />
-                        <label
-                          className="btn btn-branco-detalhes"
-                          htmlFor={`option2-detalhes-${index}`}
-                        >
+                        <label className="btn btn-branco-detalhes" htmlFor={`ge-detalhe-${aluno.id_aluno}`}>
                           GE
                         </label>
                       </div> */}
@@ -273,15 +324,10 @@ const StudentCard = () => {
 
                   <div className="student-actions">
                     <img
-                      src={
-                        detalhesAbertos[index]
-                          ? "/imgs/arrow-down-card.svg"
-                          : "/imgs/arrow-student-card.svg"
-                      }
+                      src="/imgs/arrow-down-card.svg"
                       alt="seta"
                       className="seta-card"
                       onClick={() => toggleDetalhes(index)}
-                      style={{ cursor: "pointer" }}
                     />
                   </div>
                 </div>
@@ -293,16 +339,16 @@ const StudentCard = () => {
                   <div className="student-info">
                     <div className="student-avatar">
                       <img
-                        src="/imgs/foto-perfil.png"
+                        src={aluno.foto_url || "/imgs/foto-perfil.png"}
                         width={70}
                         height={70}
                         alt="Avatar"
                       />
                     </div>
                     <div>
-                      <div className="student-name">{dados[index].nome}</div>
+                      <div className="student-name">{aluno.nome}</div>
                       <div className="student-class">
-                        DSM {dados[index].semestre}
+                        {aluno.curso_semestre} • Semestre {aluno.semestre}
                       </div>
                     </div>
                   </div>
@@ -311,7 +357,6 @@ const StudentCard = () => {
                       src="/imgs/arrow-student-card.svg"
                       alt="seta"
                       className="seta-card"
-                      style={{ cursor: "pointer" }}
                       onClick={() => toggleDetalhes(index)}
                     />
                   </div>
@@ -335,6 +380,7 @@ const StudentCard = () => {
                 src="/imgs/Delete-student.svg"
                 alt="Deletar"
                 className="icon-button"
+                onClick={() => deletarAluno(aluno.id_aluno)}
               />
             </div>
           </div>
@@ -342,25 +388,16 @@ const StudentCard = () => {
       </div>
 
       <div className="pagination">
-        {/* Botão para a página anterior */}
         {paginaAtual > 1 && (
-          <button
-            className="anterior" // Mudado de 'class' para 'className'
-            onClick={() => irParaPagina(paginaAtual - 1)}
-          >
+          <button className="anterior" onClick={() => irParaPagina(paginaAtual - 1)}>
             {paginaAtual - 1}
           </button>
         )}
 
-        {/* Página atual */}
         <span className="atual">{paginaAtual}</span>
 
-        {/* Botão para a próxima página */}
         {paginaAtual < totalPages && (
-          <button
-            className="prox" // Mudado de 'class' para 'className'
-            onClick={() => irParaPagina(paginaAtual + 1)}
-          >
+          <button className="prox" onClick={() => irParaPagina(paginaAtual + 1)}>
             {paginaAtual + 1}
           </button>
         )}
