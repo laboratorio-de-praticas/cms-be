@@ -3,111 +3,89 @@ import { useRouter } from 'next/router';
 import "../src/styles/form-student.css";
 
 const EditStudent = () => {
-    // jose, eu oreciso q dps se a pessoa nao tinha o checkbox marcado antes e quiser agora, dps q o form for enviado de update, vc redirecione 
-// ela pra pagina /eventosCandidatura pra ela ver em qual evento ela vai se candidatar, tendeu?
     const router = useRouter();
     const { id } = router.query;
 
     const [formData, setFormData] = useState({
-        nome: '',
         ra: '',
-        email_institucional: '',
-        telefone: '',
-        senha: '',
-        ano_ingresso: '',
-        turma_atual: '',
-        data_nasc: '',
+        curso_semestre: '',
         deseja_ser_candidato: false,
-        deseja_ser_lider: false,
-        curso: '',
-        foto: null,
+        foto_url: '',
+        data_matricula: ''
     });
 
     useEffect(() => {
         if (!id) return;
-        const fetchUserData = async () => {
+        
+        const fetchStudentData = async () => {
             try {
-                const res = await fetch(`/api/usuarios/${id}`);
+                const res = await fetch(`/api/Alunos/Get_id/${id}`);
                 const data = await res.json();
+                
                 if (res.ok && data.dados) {
-                    const u = data.dados;
-                    setFormData(prev => ({
-                        ...prev,
-                        nome: u.nome || '',
-                        email_institucional: u.email_institucional || '',
-                        telefone: u.telefone || '',
-                        curso: u.curso || '',
-                        ra: u.dados_aluno?.ra || '',
-                        turma_atual: u.dados_aluno?.curso_semestre || '',
-                        deseja_ser_candidato: u.dados_aluno?.deseja_ser_candidato || false,
-                    }));
+                    setFormData({
+                        ra: data.dados.ra || '',
+                        curso_semestre: data.dados.curso_semestre || '',
+                        deseja_ser_candidato: data.dados.deseja_ser_candidato || false,
+                        foto_url: data.dados.foto_url || '',
+                        data_matricula: data.dados.data_matricula || ''
+                    });
                 } else {
-                    alert('Erro ao buscar dados do usuário.');
+                    alert('Erro ao buscar dados do aluno.');
                 }
             } catch (err) {
-                console.error('Erro ao carregar dados do usuário:', err);
+                console.error('Erro ao carregar dados do aluno:', err);
             }
         };
-        fetchUserData();
+        
+        fetchStudentData();
     }, [id]);
 
     const handleChange = (e) => {
-        const { name, value, type, checked, files } = e.target;
-
-        if (type === 'file') {
-            setFormData({ ...formData, [name]: files[0] });
-        } else if (type === 'checkbox') {
-            setFormData({ ...formData, [name]: checked });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
+        const { name, value, type, checked } = e.target;
+        
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const payload = {
-            nome: formData.nome,
-            email_institucional: formData.email_institucional,
-            telefone: formData.telefone,
-            senha: formData.senha || undefined,
-            status_usuario: 'Ativo',
-            dados_aluno: {
-                ra: formData.ra,
-                curso_semestre: formData.turma_atual,
-                deseja_ser_candidato: formData.deseja_ser_candidato
-            }
+            id_aluno: id,
+            ra: formData.ra,
+            curso_semestre: formData.curso_semestre,
+            deseja_ser_candidato: formData.deseja_ser_candidato,
+            foto_url: formData.foto_url
         };
 
         try {
-            const response = await fetch(`/api/usuarios/${id}`, {
+            const response = await fetch('/api/Alunos/Update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payload)
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                alert('Usuário atualizado com sucesso!');
-                router.push('/eventosCandidatura'); // Redireciona após o envio do formulário
+                alert('Aluno atualizado com sucesso!');
+                if (formData.deseja_ser_candidato) {
+                    router.push('/eventosCandidatura');
+                } else {
+                    router.push('/alunos');
+                }
             } else {
                 alert(`Erro: ${result.mensagem}`);
             }
         } catch (error) {
-            console.error('Erro ao atualizar usuário:', error);
+            console.error('Erro ao atualizar aluno:', error);
             alert('Erro ao enviar atualização.');
         }
-    };
-
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        setFormData(prev => ({
-            ...prev,
-            foto: file
-        }));
     };
 
     return (
@@ -117,62 +95,37 @@ const EditStudent = () => {
                 <div className="title-form-student">
                     <div className="col-md-12 text-left my-3">
                         <h5 className="mb-0">Edição de</h5>
-                        <h3 className="fw-bold">Alunos</h3>
+                        <h3 className="fw-bold">Aluno</h3>
                         <div className="divider"></div>
                     </div>
                 </div>
-                <form
-                    className="form-student"
-                    method="POST"
-                    onSubmit={handleSubmit}
-                    encType="multipart/form-data"
-                >
+                <form className="form-student" onSubmit={handleSubmit}>
                     <div className="form-grid">
-                        {/* Lado esquerdo */}
+                        {/* Lado esquerdo - Foto */}
                         <div className="foto-container">
                             <div className="photo-box">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    id="imageUpload"
-                                    style={{ display: "none" }}
-                                    onChange={handleImageChange}
+                                <img
+                                    src={formData.foto_url || "/imgs/camera.svg"}
+                                    width={80}
+                                    height={80}
+                                    alt="Foto do aluno"
                                 />
-                                <label htmlFor="imageUpload">
-                                    <img
-                                        src="/imgs/camera.svg"
-                                        width={80}
-                                        height={80}
-                                        alt="Upload Image"
-                                    />
-                                </label>
                             </div>
                         </div>
 
-                        {/* Lado direito */}
+                        {/* Lado direito - Formulário */}
                         <div className="info-container">
                             <div className="d-flex align-items-center gap-3 mb-3">
                                 <label className="checkbox-label">
                                     <input
                                         type="checkbox"
-                                        name="deseja_ser_lider"
-                                        checked={formData.deseja_ser_lider}
+                                        name="deseja_ser_candidato"
+                                        checked={formData.deseja_ser_candidato}
                                         onChange={handleChange}
                                         className="check-lider"
                                     />
-                                    Desejo me candidatar a representante de classe.
+                                    Desejo me candidatar a representante de classe
                                 </label>
-                            </div>
-
-                            <div className="form-field">
-                                <input
-                                    type="text"
-                                    name="nome"
-                                    value={formData.nome}
-                                    onChange={handleChange}
-                                    className="styled-input inp-nome"
-                                    placeholder="Nome:"
-                                />
                             </div>
 
                             <div className="form-row">
@@ -184,7 +137,8 @@ const EditStudent = () => {
                                             value={formData.ra}
                                             onChange={handleChange}
                                             className="styled-input inp-ra"
-                                            placeholder="RA:"
+                                            placeholder="RA"
+                                            required
                                         />
                                     </div>
                                 </div>
@@ -192,63 +146,43 @@ const EditStudent = () => {
                                     <div className="form-field data">
                                         <input
                                             type="text"
-                                            name="ano_ingresso"
-                                            value={formData.ano_ingresso}
-                                            onChange={handleChange}
+                                            name="data_matricula"
+                                            value={formData.data_matricula}
                                             className="styled-input inp-data"
-                                            placeholder="Data de Matrícula:"
+                                            placeholder="Data de Matrícula"
+                                            readOnly
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="form-row">
-                                <div className="col-6">
-                                    <div className="form-field email">
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            className="styled-input inp-email"
-                                            placeholder="E-mail:"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="col-6">
+                                <div className="col-12">
                                     <div className="form-field sem">
                                         <input
                                             type="text"
-                                            name="turma_atual"
-                                            value={formData.turma_atual}
+                                            name="curso_semestre"
+                                            value={formData.curso_semestre}
                                             onChange={handleChange}
                                             className="styled-input inp-sem"
-                                            placeholder="Semestre Atual: (ex.:DSM1)"
+                                            placeholder="Curso e Semestre (ex: DSM3)"
+                                            required
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="row-final">
-                                <div className="campo-final">
-                                    <div className="form-field senha">
-                                        <input
-                                            type="password"
-                                            name="senha"
-                                            value={formData.senha}
-                                            onChange={handleChange}
-                                            className="styled-input inp-senha"
-                                            placeholder="Senha:"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="button-group">
-                                    <button type="submit" className="btn btn-warning">
-                                        Editar
-                                    </button>
-                                    <a href="/eventosCandidatura" className="btn btn-outline-danger">
-                                        Cancelar
-                                    </a>
-                                </div>
+                            <div className="button-group">
+                                <button type="submit" className="btn btn-warning">
+                                    Salvar Alterações
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-danger"
+                                    onClick={() => router.push('/alunos')}
+                                >
+                                    Cancelar
+                                </button>
                             </div>
                         </div>
                     </div>
