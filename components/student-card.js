@@ -71,7 +71,7 @@ const StudentCard = () => {
   const salvarAlteracoes = async (index) => {
     try {
       const aluno = alunos[index];
-      const response = await fetch(`/api/Alunos/Atualizar/${aluno.id_aluno}`, {
+      const response = await fetch(`/api/Alunos/Update/${aluno.id_aluno}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,22 +98,7 @@ const StudentCard = () => {
     }
   };
 
-  const deletarAluno = async (id) => {
-    try {
-      const response = await fetch(`/api/Alunos/Deletar/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        setAlunos(alunos.filter(aluno => aluno.id_aluno !== id));
-      } else {
-        throw new Error('Erro ao deletar aluno');
-      }
-    } catch (error) {
-      console.error("Erro ao deletar aluno:", error);
-      setErro("Erro ao deletar aluno");
-    }
-  };
+  
 
   const paginarAlunos = () => {
     const inicio = (paginaAtual - 1) * itemsPorPagina;
