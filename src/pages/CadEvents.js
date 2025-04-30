@@ -1,4 +1,4 @@
-import FormEvents from '../../components/form-events.js';
+import FormEvents from '../components/form-events.js';
 export default function CadEvents(){
     return(
         <>

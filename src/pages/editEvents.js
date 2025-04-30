@@ -1,4 +1,4 @@
-import EditEventsComponent from '../../components/edit-events.js';
+import EditEventsComponent from '../components/edit-events.js';
 
 export default function EditEvents() {
     return (

@@ -1,4 +1,4 @@
-import FormVisitante from '../../components/formVisitante.js';
+import FormVisitante from '../components/formVisitante.js';
 export default function CadVisitante() {
     return(
         <>

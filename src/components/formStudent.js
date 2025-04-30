@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
-import "../src/styles/form-student.css";
+import "../styles/form-student.css";
 
 const FormStudent = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [dateFocused, setDateFocused] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [imagemSelecionada, setImagemSelecionada] = useState(null);
 
   const [formData, setFormData] = useState({
-    fk_id_usuario: 6, // Fixo para testes
+    fk_id_usuario: 6, //Fixo para teste
+    fk_id_evento: 3, //Fixo para teste
     foto_url: "",
     deseja_ser_candidato: false,
+    descricao_campanha: "", 
     curso_semestre: "",
-    ra: '',
+    ra: "",
     data_matricula: "",
   });
 
@@ -24,40 +27,11 @@ const FormStudent = () => {
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  const uploadFoto = async (file) => {
-    const formData = new FormData();
-    formData.append("imagem", file);
-
-    try {
-      const response = await fetch("/api/Alunos/Uploads/UploadFoto", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.mensagem || "Erro ao fazer upload da imagem");
-      }
-
-      const data = await response.json();
-      return data.foto_url;
-    } catch (error) {
-      console.error("Erro no upload:", error);
-      alert("Erro ao fazer upload da imagem");
-      throw error;
-    }
-  };
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      uploadFoto(file).then((foto_url) => {
-        setFormData((prev) => ({ ...prev, foto_url }));
-        setImagePreviewUrl(URL.createObjectURL(file)); // Atualiza preview local para fade-in
-      }).catch((error) => {
-        console.error("Erro ao carregar foto:", error);
-        alert("Erro ao carregar foto.");
-      });
+      setImagemSelecionada(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -65,10 +39,36 @@ const FormStudent = () => {
     e.preventDefault();
 
     try {
+      let foto_url = formData.foto_url;
+
+      if (imagemSelecionada) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("imagem", imagemSelecionada);
+
+        const uploadResponse = await fetch("/api/Alunos/Uploads/UploadFoto", {
+          method: "POST",
+          body: uploadFormData,
+        });
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(uploadResult.mensagem || "Erro ao enviar imagem");
+        }
+
+        foto_url = uploadResult.foto_url;
+      }
+
+      const alunoPayload = {
+        ...formData,
+        foto_url,
+        fk_id_evento: formData.deseja_ser_candidato ? formData.fk_id_evento : null,
+      };
+
       const response = await fetch("/api/Alunos/Create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(alunoPayload),
       });
 
       const result = await response.json();
@@ -83,8 +83,8 @@ const FormStudent = () => {
         alert(`Erro: ${result.mensagem}\n${result.detalhes || ""}`);
       }
     } catch (error) {
-      console.error("Erro ao enviar dados:", error);
-      alert("Erro de conexão com o servidor.");
+      console.error("Erro ao cadastrar aluno:", error);
+      alert("Erro ao cadastrar aluno.");
     }
   };
 
@@ -119,7 +119,6 @@ const FormStudent = () => {
           encType="multipart/form-data"
         >
           <div className="form-grid">
-            {/* Lado esquerdo - Upload da foto */}
             <div className="foto-container">
               <div className="photo-box">
                 <input
@@ -131,7 +130,7 @@ const FormStudent = () => {
                 />
                 <label htmlFor="imageUpload" style={{ cursor: "pointer" }}>
                   <img
-                    src={imagePreviewUrl || formData.foto_url || "/imgs/camera.svg"}
+                    src={imagePreviewUrl || "/imgs/camera.svg"}
                     width={150}
                     height={150}
                     alt="Foto do aluno"
@@ -147,7 +146,6 @@ const FormStudent = () => {
               </div>
             </div>
 
-            {/* Lado direito - Dados do aluno */}
             <div className="info-container">
               <div className="d-flex align-items-center gap-3 mb-3">
                 <label className="checkbox-label">
@@ -161,6 +159,19 @@ const FormStudent = () => {
                   Desejo me candidatar a representante de classe.
                 </label>
               </div>
+
+              {formData.deseja_ser_candidato && (
+                <div className="form-field">
+                  <textarea
+                    name="descricao_campanha"
+                    value={formData.descricao_campanha}
+                    onChange={handleChange}
+                    className="styled-input inp-nome"
+                    placeholder="Descrição da campanha:"
+                    rows={4}
+                  />
+                </div>
+              )}
 
               <div className="form-row">
                 <div className="col-6">

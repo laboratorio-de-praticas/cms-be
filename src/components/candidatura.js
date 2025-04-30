@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import "../src/styles/eventos-candidatura.css";
+import "../styles/eventos-candidatura.css";
 
 const Candidatura = () => {
   const [showModal, setShowModal] = useState(true);

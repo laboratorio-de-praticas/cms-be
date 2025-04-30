@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
-import { useUser } from '../context/userContext'; // Importando o hook do contexto
-import "../src/styles/index-options.css";
+import { useUser } from '../../context/userContext'; // Importando o hook do contexto
+import "../styles/index-options.css";
 
 const IndexOptions = () => {
   const router = useRouter();

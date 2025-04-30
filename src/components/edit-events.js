@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from "next/router";
-import "../src/styles/form-events.css";
+import "../styles/form-events.css";
 const EditEventsComponent = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];

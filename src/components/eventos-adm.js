@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import "../src/styles/eventos-adm.css";
+import "../styles/eventos-adm.css";
 const ShowEventos = () => {
     return(
         <div className="container-md container-eventos-adm">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import "../src/styles/create-project.css"
+import "../styles/edit-projects.css"
 
-function CreateProject() {
+function EditProjects() {
   const [formData, setFormData] = useState({
     turma: 'DSM',
     nomeProjeto: '',
@@ -55,7 +55,7 @@ function CreateProject() {
     <div className="container-projeto">
       <form className="form-projeto" onSubmit={handleSubmit}>
         <div className="container">
-          <div className="row-proj">
+          <div className="row">
             <div className="col-md-3">
               <div className="foto-turma d-flex align-items-start">
                 {/* lado esquerdo */}
@@ -144,7 +144,6 @@ function CreateProject() {
             </div>
             <button className="btn-add">Adicionar</button>
           </div>
-
               {/* <!-- Card do aluno (repita quantos quiser) --> */}
               <div className="aluno-card">
                 <img src="/imgs/foto-perfil.png" height={40} width={40} alt="Foto do aluno" className="foto-aluno" />
@@ -200,19 +199,15 @@ function CreateProject() {
           {/* extensao */}
           <div className="row row-border d-flex justify-content-center g-3 mt-3 extensao">
           <div className="col-md-12 title-proj">Linhas de Extensão (máx. 5) </div>
-          <div className="col-md-12 d-flex align-items-center mb-4">
-            <div className="search-wrapper me-3">
-              <input className="search" placeholder="Pesquisar linha de extensão" />
+          <div className="col-md-9 d-flex justify-content-center mb-4">
+            <div className="search-wrapper">
+              <input className="search" placeholder="Pesquisar aluno" />
               <img src="/imgs/search-blue.svg" alt="Ícone de lupa" className="search-icon" />
             </div>
-            <button className="btn-add">Adicionar</button>
           </div>
-
-              {/* <!-- Card do aluno (repita quantos quiser) --> */}
-              <div className="aluno-card">
-                <p className="nome-aluno">Pessoas com Deficiências Incapacidades, e Necessidades Especiais</p>
-                <img src="/imgs/excluir-card.svg" height={20} width={20} alt="Excluir" className="icone-excluir" />
-              </div>
+            <div className="col-md-3 d-flex justify-content-center mb-4">
+              <button className="btn-add">Adicionar</button>
+            </div>
           </div>
           {/* eventos */}
           <div className="row row-border d-flex justify-content-center g-3">
@@ -228,7 +223,7 @@ function CreateProject() {
           </div>
           <div className="row mt-4">
             <div className="col-md-12">
-              <button className="btn-cadastrar">Cadastrar</button>
+              <button className="btn-cadastrar">Editar</button>
             </div>
           </div>
         </div>
@@ -238,4 +233,4 @@ function CreateProject() {
   );
 }
 
-export default CreateProject;
+export default EditProjects;

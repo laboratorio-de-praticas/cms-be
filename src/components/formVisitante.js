@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import "../src/styles/formVisitante.css";
+import "../styles/formVisitante.css";
 
 const FormVisitante = () => {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import Candidatura from "../../components/candidatura.js";
+import Candidatura from "../components/candidatura.js";
 
 // eu coloquei header, navbar e footer no app.js e ai tirei das outras paginas pra nao duplicar ;)
 

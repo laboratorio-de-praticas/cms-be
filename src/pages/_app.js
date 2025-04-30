@@ -1,10 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 import { useState, useEffect } from 'react';
-import Navbar from '../../components/navbar.js';
-import MenuProfile from '../../components/menu-profile.js';
-import Header from '../../components/header.js';
-import Footer from '../../components/footer.js';
+import Navbar from '../components/navbar.js';
+import MenuProfile from '../components/menu-profile.js';
+import Header from '../components/header.js';
+import Footer from '../components/footer.js';
 import { UserProvider } from '../../context/userContext.js'; // importa seu contexto
 
 export default function App({ Component, pageProps }) {

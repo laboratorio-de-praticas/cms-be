@@ -1,4 +1,4 @@
-import "../src/styles/search-home.css";
+import "../styles/search-home.css";
 import React from "react";
 
 const SearchHome = ({ onProjetoClick, onAlunoClick}) => {

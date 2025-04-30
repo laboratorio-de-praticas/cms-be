@@ -1,4 +1,4 @@
-import EditStudent from "../../components/editStudent.js";
+import EditStudent from "../components/editStudent.js";
 export default function Edit(){
     return(
         <>

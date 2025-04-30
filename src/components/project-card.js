@@ -1,4 +1,4 @@
-import "../src/styles/project-card.css";
+import "../styles/project-card.css";
 import React, { useState } from "react";
 
 const ProjectCard = () => {

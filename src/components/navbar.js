@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
-import "../src/styles/navbar.css";
-import { useUser } from "../context/userContext.js";
+import "../styles/navbar.css";
+import { useUser } from "../../context/userContext.js";
 import { useEffect, useState } from "react";
 
 const Navbar = ({ abrirMenu }) => {

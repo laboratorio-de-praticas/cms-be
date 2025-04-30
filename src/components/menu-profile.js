@@ -1,5 +1,5 @@
-import { useUser } from '../context/userContext';
-import "../src/styles/menu-profile.css";
+import { useUser } from '../../context/userContext';
+import "../styles/menu-profile.css";
 import { useState } from 'react';
 
 const MenuProfile = ({

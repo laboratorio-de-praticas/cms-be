@@ -1,4 +1,4 @@
-import RequestBoard from "../../components/request-board";
+import RequestBoard from "../components/request-board";
 export default function Pedidos(){
     return(
         <>

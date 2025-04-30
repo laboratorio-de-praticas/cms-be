@@ -1,5 +1,5 @@
 import React from 'react';
-import '../src/styles/AdminPanel.css';
+import '../styles/AdminPanel.css';
 
 function AdminPanel() {
   const administrador = {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import "../src/styles/form-student.css";
+import "../styles/form-student.css";
 
 const EditStudent = () => {
     // jose, eu oreciso q dps se a pessoa nao tinha o checkbox marcado antes e quiser agora, dps q o form for enviado de update, vc redirecione 

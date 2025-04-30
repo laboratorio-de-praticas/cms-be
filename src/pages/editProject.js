@@ -1,4 +1,4 @@
-import EditProjects from "../../components/EditProjects.js";
+import EditProjects from "../components/EditProjects.js";
 
 export default function EditP(){
     return(

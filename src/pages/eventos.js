@@ -1,4 +1,4 @@
-import ShowEventos from "../../components/eventos-adm.js";
+import ShowEventos from "../components/eventos-adm.js";
 export default function Eventos() {
     return (
         <main>

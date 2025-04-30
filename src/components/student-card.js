@@ -1,4 +1,4 @@
-import "../src/styles/student-card.css";
+import "../styles/student-card.css";
 import React, { useState } from "react";
 // comentario para o back-end: eu tentei fazer a paginacao aqui mas nao sei se esta certa
 //  porque apesar de esta funcionando,eu nao sei se esta certa, ja q ta repetindo nomes q nao deveriam...
@@ -94,7 +94,7 @@ const StudentCard = () => {
                   </div>
                   <div className="form-fields">
                     <div className="field-group">
-                      <div className="form-tags">
+                      {/* <div className="form-tags">
                         <div className="btn-group-curso" role="group">
                           <input
                             type="radio"
@@ -123,14 +123,14 @@ const StudentCard = () => {
                             GE
                           </label>
                         </div>
-                      </div>
+                      </div> */}
                       <div className="semestre-container">
                         <label className="semestre-label">
-                          Semestre Atual:
+                          Turma Atual:
                         </label>
                         <input
                           className="semestre-input"
-                          type="number"
+                          type="text"
                           value={dados[index].semestre}
                           onChange={(e) =>
                             handleChange(index, "semestre", e.target.value)
@@ -238,9 +238,9 @@ const StudentCard = () => {
                         <strong>Ingresso:</strong> {dados[index].ingresso}
                       </p>
                       <p className="sem-detalhe">
-                        <strong>Semestre Atual:</strong> {dados[index].semestre}
+                        <strong>Turma Atual:</strong> {dados[index].semestre}
                       </p>
-                      <div className="btn-group" role="group">
+                      {/* <div className="btn-group" role="group">
                         <input
                           type="radio"
                           className="btn-check"
@@ -267,7 +267,7 @@ const StudentCard = () => {
                         >
                           GE
                         </label>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 

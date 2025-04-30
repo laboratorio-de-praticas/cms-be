@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import '../src/styles/header.css';
+import '../styles/header.css';
 
 export default function Header() {
    const [menuAbertoHeader, setMenuAbertoHeader] = useState(false)

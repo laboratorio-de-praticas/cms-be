@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';  // Adicione essa importação
-import "../src/styles/welcome.css";
+import { useState, useEffect } from 'react'; 
+import "../styles/welcome.css";
 
 const Welcome = () => {
-    const [isClient, setIsClient] = useState(false); // Inicializando o estado
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setIsClient(true);  // Garantir que o código só execute no cliente
+        setIsClient(true); 
     }, []);
 
-    if (!isClient) return null;  // Evitar renderização no lado do servidor
+    if (!isClient) return null; 
 
     return (
         <div className="bem-vindo-container">
