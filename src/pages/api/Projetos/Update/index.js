@@ -2,6 +2,7 @@ import { IncomingForm } from 'formidable';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { conectar_banco } from '../../../../config/database';
+import crypto from 'crypto';
 // import authMiddleware from '../../../../middleware/authMiddleware';
 
 export const config = {
@@ -30,6 +31,89 @@ export default async function handler(req, res) {
     });
   });
 
+  const files = data; // formidable coloca arquivos em data se não houver fields separados
+
+  // Processar imagem de capa
+  let nome_arquivo = '';
+  if (files.imagem_capa) {
+    const arquivo = Array.isArray(files.imagem_capa) 
+      ? files.imagem_capa[0] 
+      : files.imagem_capa;
+
+    // Gerar hash para o nome do arquivo
+    const hash = crypto.createHash('md5')
+      .update(Date.now().toString())
+      .digest('hex');
+
+    const extensao = path.extname(arquivo.originalFilename);
+    nome_arquivo = `${hash}${extensao}`;
+
+    // Validar tipo de arquivo
+    const tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!tipos_permitidos.includes(arquivo.mimetype)) {
+      await fs.unlink(arquivo.filepath);
+      throw new Error('Tipo de arquivo não permitido. Use apenas JPG, PNG, GIF ou WEBP.');
+    }
+
+    // Validar tamanho do arquivo (máximo 5MB)
+    const tamanho_maximo = 5 * 1024 * 1024; // 5MB
+    if (arquivo.size > tamanho_maximo) {
+      await fs.unlink(arquivo.filepath);
+      throw new Error('Arquivo muito grande. Tamanho máximo permitido: 5MB');
+    }
+
+    // Mover arquivo para localização final
+    const caminho_final = path.join(process.cwd(), 'public/imgs/projetos/capas', nome_arquivo);
+    await fs.rename(arquivo.filepath, caminho_final);
+  }
+
+  // Processar múltiplas imagens do projeto
+  const imagens_projeto = [];
+  if (files.imagens_projeto) {
+    const arquivos = Array.isArray(files.imagens_projeto) 
+      ? files.imagens_projeto 
+      : [files.imagens_projeto];
+    for (const arquivo of arquivos) {
+      // Gerar hash para o nome do arquivo
+      const hash = crypto.createHash('md5')
+        .update(Date.now().toString() + Math.random().toString())
+        .digest('hex');
+
+      const extensao = path.extname(arquivo.originalFilename);
+      const nome_imagem = `${hash}${extensao}`;
+      // Validar tipo de arquivo
+      const tipos_permitidos = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!tipos_permitidos.includes(arquivo.mimetype)) {
+        await fs.unlink(arquivo.filepath);
+        continue; // Pula este arquivo e continua com os próximos
+      }
+
+      // Validar tamanho do arquivo (máximo 5MB)
+      const tamanho_maximo = 5 * 1024 * 1024; // 5MB
+      if (arquivo.size > tamanho_maximo) {
+        await fs.unlink(arquivo.filepath);
+        continue; // Pula este arquivo e continua com os próximos
+      }
+
+      // Mover arquivo para localização final
+      const caminho_final = path.join(process.cwd(), 'public/imgs/projetos/Imagens_Projeto', nome_imagem);
+      await fs.rename(arquivo.filepath, caminho_final);
+      // Adicionar o nome da imagem à lista
+      imagens_projeto.push(nome_imagem);
+    }
+  }
+
+  // Faz o parse do campo "dados" se existir
+  let campos = data;
+  if (data.dados) {
+    try {
+      campos = { ...campos, ...JSON.parse(data.dados) };
+      delete campos.dados;
+    } catch (e) {
+      return res.status(400).json({ mensagem: 'JSON inválido no campo "dados"' });
+    }
+  }
+
   const {
     titulo,
     nome_equipe,
@@ -39,18 +123,20 @@ export default async function handler(req, res) {
     cea,
     turma,
     ativo,
-    imagens,
     integrantes,
-    ods,
-    linhas_extensao,
+    ods_ids,
+    linha_extensao_ids,
+    area_tematica_ids,
     categorias
-  } = data;
+  } = campos;
+
+  const imagens = data.imagens; // imagens continuam sendo processadas separadamente
 
   // Verifica se pelo menos um campo foi enviado para atualização
   if (!titulo && !nome_equipe && !descricao && !foto_url && 
       tlr === undefined && cea === undefined && !turma && 
-      ativo === undefined && !imagens && !integrantes && 
-      !ods && !linhas_extensao && !categorias) {
+      ativo === undefined && !integrantes && 
+      !ods_ids && !linha_extensao_ids && !area_tematica_ids && !categorias) {
     return res.status(400).json({ 
       mensagem: 'Nenhum dado para atualizar',
       campos_disponiveis: [
@@ -62,10 +148,10 @@ export default async function handler(req, res) {
         'cea',
         'turma',
         'ativo',
-        'imagens',
         'integrantes',
-        'ods',
-        'linhas_extensao',
+        'ods_ids',
+        'linha_extensao_ids',
+        'area_tematica_ids',
         'categorias'
       ]
     });
@@ -111,11 +197,17 @@ export default async function handler(req, res) {
       paramCount++;
     }
 
-    if (foto_url !== undefined) {
+    // --- ALTERAÇÃO PARA USAR O NOME DO ARQUIVO DE CAPA SE HOUVER UPLOAD ---
+    if (nome_arquivo) {
+      updateFields.push(`foto_url = $${paramCount}`);
+      updateValues.push(nome_arquivo);
+      paramCount++;
+    } else if (foto_url !== undefined) {
       updateFields.push(`foto_url = $${paramCount}`);
       updateValues.push(foto_url);
       paramCount++;
     }
+    // --- FIM DA ALTERAÇÃO ---
 
     if (tlr !== undefined) {
       updateFields.push(`tlr = $${paramCount}`);
@@ -155,8 +247,8 @@ export default async function handler(req, res) {
       );
     }
 
-    // Atualizar imagens se fornecidas
-    if (imagens) {
+    // --- ALTERAÇÃO PARA USAR OS NOMES DOS ARQUIVOS DAS IMAGENS UPLOADADAS ---
+    if (imagens_projeto.length > 0) {
       // Remover imagens existentes
       await client.query(
         'DELETE FROM "ImagensProjeto" WHERE projeto_id = $1',
@@ -164,33 +256,32 @@ export default async function handler(req, res) {
       );
 
       // Inserir novas imagens
-      for (const imagem of imagens) {
+      for (const imagem_url of imagens_projeto) {
         await client.query(
           'INSERT INTO "ImagensProjeto" (projeto_id, imagem_url) VALUES ($1, $2)',
-          [id_projeto, imagem.imagem_url]
+          [id_projeto, imagem_url]
         );
       }
     }
+    // --- FIM DA ALTERAÇÃO ---
 
-    // Atualizar integrantes se fornecidos
-    if (integrantes) {
-      // Remover integrantes existentes
-      await client.query(
-        'DELETE FROM integrantesequipe WHERE projeto_id = $1',
-        [id_projeto]
-      );
-
-      // Inserir novos integrantes
-      for (const integrante of integrantes) {
-        await client.query(
-          'INSERT INTO integrantesequipe (projeto_id, aluno_id) VALUES ($1, $2)',
-          [id_projeto, integrante.aluno_id]
+    // --- INÍCIO DA ALTERAÇÃO PARA INTEGRANTES POR NOME ---
+    let integrantes_ids = [];
+    if (integrantes && Array.isArray(integrantes)) {
+      for (const nome of integrantes) {
+        const result = await client.query(
+          'SELECT a.id_aluno FROM "Alunos" a INNER JOIN "Usuarios" u ON a.fk_id_usuario = u.id WHERE u.nome = $1',
+          [nome]
         );
+        if (result.rows.length > 0) {
+          integrantes_ids.push({ aluno_id: result.rows[0].id_aluno });
+        }
       }
     }
+    // --- FIM DA ALTERAÇÃO ---
 
     // Atualizar ODS se fornecidos
-    if (ods) {
+    if (ods_ids) {
       // Remover ODS existentes
       await client.query(
         'DELETE FROM "ProjetoODS" WHERE projeto_id = $1',
@@ -198,7 +289,7 @@ export default async function handler(req, res) {
       );
 
       // Inserir novos ODS
-      for (const id_ods of ods) {
+      for (const id_ods of ods_ids) {
         await client.query(
           'INSERT INTO "ProjetoODS" (projeto_id, ods_id) VALUES ($1, $2)',
           [id_projeto, id_ods]
@@ -207,7 +298,7 @@ export default async function handler(req, res) {
     }
 
     // Atualizar linhas de extensão se fornecidas
-    if (linhas_extensao) {
+    if (linha_extensao_ids) {
       // Remover linhas existentes
       await client.query(
         'DELETE FROM "ProjetoLinhaExtensao" WHERE projeto_id = $1',
@@ -215,7 +306,7 @@ export default async function handler(req, res) {
       );
 
       // Inserir novas linhas
-      for (const id_linha of linhas_extensao) {
+      for (const id_linha of linha_extensao_ids) {
         await client.query(
           'INSERT INTO "ProjetoLinhaExtensao" (projeto_id, linha_extensao_id) VALUES ($1, $2)',
           [id_projeto, id_linha]

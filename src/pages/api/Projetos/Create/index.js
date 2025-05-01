@@ -42,13 +42,12 @@ export default async function handler(req, res) {
  
     // Extrair dados do JSON
     const {
-      nome_Projeto = '',
+      titulo = '',
       nome_equipe = '',
       descricao = '',
       turma = '',
       tlr = '0',
       cea = '0',
-      area_atuacao = '',
       ods_ids = [],
       linha_extensao_ids = [],
       area_tematica_ids = [],
@@ -129,7 +128,7 @@ export default async function handler(req, res) {
     }
  
     // Validações básicas
-    if (!nome_Projeto.trim()) {
+    if (!titulo.trim()) {
       return res.status(400).json({ erro: 'Nome do projeto é obrigatório' });
     }
  
@@ -144,7 +143,7 @@ export default async function handler(req, res) {
     // Verifica se o projeto já existe (case insensitive)
     const projeto_existente = await client.query(
       'SELECT id_projeto FROM "Projetos" WHERE UPPER(titulo) = UPPER($1)',
-      [nome_Projeto]
+      [titulo]
     );
  
     if (projeto_existente.rows.length > 0) {
@@ -185,7 +184,7 @@ export default async function handler(req, res) {
        VALUES($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING id_projeto`,
       [
-        nome_Projeto,
+        titulo,
         nome_equipe,
         tlr,
         nome_arquivo,
