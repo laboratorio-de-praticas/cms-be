@@ -1,23 +1,5 @@
-<<<<<<< HEAD:src/components/student-card.js
 import "../styles/student-card.css";
-import React, { useState } from "react";
-// comentario para o back-end: eu tentei fazer a paginacao aqui mas nao sei se esta certa
-//  porque apesar de esta funcionando,eu nao sei se esta certa, ja q ta repetindo nomes q nao deveriam...
-// entao por favr deem uma atencao nessa parte aqui
-const StudentCard = () => {
-  const students = [
-    "Guilherme Marcos da Silva",
-    "Jorge Kirimis Leandro",
-    "João Massau Marcos",
-    "Guilherme de Almeida",
-    "Lucas de Almeida",
-    "Isabele Queiroz",
-    "Ana Carolina",
-  ];
-=======
-import "../src/styles/student-card.css";
 import React, { useState, useEffect } from "react";
->>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
 
 const StudentCard = () => {
   const [alunos, setAlunos] = useState([]);
@@ -180,25 +162,12 @@ const StudentCard = () => {
                         </div>
                       </div> */}
                       <div className="semestre-container">
-<<<<<<< HEAD:src/components/student-card.js
-                        <label className="semestre-label">
-                          Turma Atual:
-                        </label>
-                        <input
-                          className="semestre-input"
-                          type="text"
-                          value={dados[index].semestre}
-                          onChange={(e) =>
-                            handleChange(index, "semestre", e.target.value)
-                          }
-=======
                         <label className="semestre-label">Semestre:</label>
                         <input
                           className="semestre-input"
                           type="number"
                           value={aluno.dadosEditados.semestre || ''}
                           onChange={(e) => handleChange(index, 'semestre', e.target.value)}
->>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
                         />
                       </div>
                     </div>
@@ -289,11 +258,7 @@ const StudentCard = () => {
                         <strong>Ingresso:</strong> {aluno.data_matricula}
                       </p>
                       <p className="sem-detalhe">
-<<<<<<< HEAD:src/components/student-card.js
-                        <strong>Turma Atual:</strong> {dados[index].semestre}
-=======
                         <strong>Semestre:</strong> {aluno.curso_semestre}
->>>>>>> 403a99d43a2e0235db1b6712e9021db9fca47f81:components/student-card.js
                       </p>
                       {/* <div className="btn-group" role="group">
                         <input

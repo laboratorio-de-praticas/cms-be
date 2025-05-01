@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     data_matricula,
     fk_id_evento,
     descricao_campanha,
-    acao,
+    acao,  // Aqui está o valor "const"
     id_aluno,
   } = req.body;
 
@@ -25,6 +25,16 @@ export default async function handler(req, res) {
 
     // --- TRATAMENTO DE ACEITAÇÃO/RECUSA DE REPRESENTANTE ---
     if (acao && id_aluno && fk_id_evento) {
+      let acaoAlterada = acao; // Altere para let, permitindo a modificação da variável
+      // Traduzindo "Aceito" e "Recusado" para "Ativo" e "Desligado"
+      if (acaoAlterada === 'Aceito') acaoAlterada = 'Ativo';
+      if (acaoAlterada === 'Recusado') acaoAlterada = 'Desligado';
+
+      if (!['Ativo', 'Desligado'].includes(acaoAlterada)) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ mensagem: 'Ação inválida', detalhes: 'Ação deve ser "Ativo" ou "Desligado"' });
+      }
+
       const representante = await client.query(
         `SELECT * FROM "Representantes" 
          WHERE fk_id_aluno = $1 AND fk_id_evento = $2`,
@@ -43,12 +53,12 @@ export default async function handler(req, res) {
         `UPDATE "Representantes"
          SET representantesituacao = $1
          WHERE fk_id_aluno = $2 AND fk_id_evento = $3`,
-        [acao === 'aceitar' ? 'Ativo' : 'Desligado', id_aluno, fk_id_evento]
+        [acaoAlterada, id_aluno, fk_id_evento]
       );
 
       await client.query('COMMIT');
       return res.status(200).json({
-        mensagem: acao === 'aceitar'
+        mensagem: acaoAlterada === 'Ativo'
           ? 'Representante aceito com sucesso!'
           : 'Representante recusado com sucesso!',
       });
