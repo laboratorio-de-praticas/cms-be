@@ -21,7 +21,7 @@ export default async function handler(req, res) {
                 a.foto_url,
                 a.curso_semestre,
                 a.ra,
-                a.data_matricula,
+                TO_CHAR(a.data_matricula, 'YYYY-MM-DD') AS data_matricula,
                 u.nome,
                 u.telefone,
                 u.email_institucional,

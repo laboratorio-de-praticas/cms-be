@@ -14,24 +14,32 @@ const StudentCard = () => {
   useEffect(() => {
     const carregarAlunos = async () => {
       try {
-        const response = await fetch('/api/Alunos/Get_all');
+        const response = await fetch('/api/Projetos/Get_nome_alunos?nome=%');
+        
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
         const data = await response.json();
-        if (data.dados) {
-          setAlunos(data.dados.map(aluno => ({
+        
+        if (Array.isArray(data)) {
+          setAlunos(data.map(aluno => ({
             ...aluno,
             editando: false,
             dadosEditados: {
               nome: aluno.nome || '',
+              email_institucional: aluno.email_institucional || '',
               curso_semestre: aluno.curso_semestre || '',
-              celular: aluno.celular || '',
-              data_nascimento: aluno.data_nascimento || '',
-              data_ingresso: aluno.data_ingresso || ''
+              celular: aluno.telefone || '', 
+              ra: aluno.ra || '',
+              data_matricula: aluno.data_matricula ? 
+                aluno.data_matricula.split(' ')[0] : '' 
             }
           })));
         }
       } catch (error) {
         console.error("Erro ao carregar alunos:", error);
-        setErro("Erro ao carregar alunos");
+        setErro("Erro ao carregar alunos. Por favor, tente novamente.");
       } finally {
         setCarregando(false);
       }
@@ -68,37 +76,80 @@ const StudentCard = () => {
     setAlunos(novosAlunos);
   };
 
+  
   const salvarAlteracoes = async (index) => {
     try {
       const aluno = alunos[index];
-      const response = await fetch(`/api/Alunos/Update/${aluno.id_aluno}`, {
+      
+      // Prepara os dados no formato que o backend espera
+      const dadosParaEnviar = {
+        id_aluno: aluno.id_aluno, // Agora enviando no body
+        nome: aluno.dadosEditados.nome,
+        email_institucional: aluno.dadosEditados.email_institucional,
+        curso_semestre: aluno.dadosEditados.curso_semestre,
+        telefone: aluno.dadosEditados.celular,
+        ra: aluno.dadosEditados.ra,
+        data_matricula: aluno.dadosEditados.data_matricula,
+        foto_url: aluno.foto_url || null
+      };
+  
+      const response = await fetch('/api/Alunos/Update', { // Removido o ID da URL
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(aluno.dadosEditados)
+        body: JSON.stringify(dadosParaEnviar)
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const novosAlunos = [...alunos];
-        novosAlunos[index] = {
-          ...novosAlunos[index],
-          ...data.alunoAtualizado,
-          dadosEditados: { ...data.alunoAtualizado }
-        };
-        setAlunos(novosAlunos);
-        toggleFormulario(index);
-      } else {
-        throw new Error('Erro ao atualizar aluno');
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.mensagem || `Erro HTTP: ${response.status}`);
       }
+  
+      const data = await response.json();
+      
+      // Atualiza o estado local
+      setAlunos(prev => prev.map((a, i) => 
+        i === index ? { 
+          ...a,
+          ...data.aluno, // Agora usando data.aluno
+          dadosEditados: {
+            nome: data.aluno.nome,
+            email_institucional: data.aluno.email_institucional,
+            curso_semestre: data.aluno.curso_semestre,
+            celular: data.aluno.telefone,
+            ra: data.aluno.ra,
+            data_matricula: data.aluno.data_matricula?.split(' ')[0] || ''
+          }
+        } : a
+      ));
+  
+      setFormAberto(prev => ({ ...prev, [index]: false }));
+      setErro(null);
+      
     } catch (error) {
-      console.error("Erro ao salvar alterações:", error);
-      setErro("Erro ao salvar alterações");
+      console.error('Erro ao salvar:', error);
+      setErro(`Falha ao salvar: ${error.message}`);
     }
   };
 
   
+  const deletarAluno = async (idAluno) => {
+    try {
+      const response = await fetch(`/api/Alunos/Delete/${idAluno}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setAlunos(alunos.filter(aluno => aluno.id_aluno !== idAluno));
+      } else {
+        throw new Error('Erro ao deletar aluno');
+      }
+    } catch (error) {
+      console.error("Erro ao deletar aluno:", error);
+      setErro("Erro ao deletar aluno");
+    }
+  };
 
   const paginarAlunos = () => {
     const inicio = (paginaAtual - 1) * itemsPorPagina;
@@ -135,39 +186,13 @@ const StudentCard = () => {
                   </div>
                   <div className="form-fields">
                     <div className="field-group">
-                      {/* <div className="form-tags">
-                        <div className="btn-group-curso" role="group">
-                          <input
-                            type="radio"
-                            className="btn-check"
-                            name={`curso-${aluno.id_aluno}`}
-                            id={`dsm-${aluno.id_aluno}`}
-                            checked={aluno.dadosEditados.curso_semestre?.toLowerCase().includes('dsm')}
-                            onChange={() => handleChange(index, 'curso_semestre', 'DSM')}
-                          />
-                          <label className="btn btn-amarelo-curso" htmlFor={`dsm-${aluno.id_aluno}`}>
-                            DSM
-                          </label>
-                          <input
-                            type="radio"
-                            className="btn-check"
-                            name={`curso-${aluno.id_aluno}`}
-                            id={`ge-${aluno.id_aluno}`}
-                            checked={aluno.dadosEditados.curso_semestre?.toLowerCase().includes('ge')}
-                            onChange={() => handleChange(index, 'curso_semestre')}
-                          />
-                          <label className="btn btn-branco-curso" htmlFor={`ge-${aluno.id_aluno}`}>
-                            GE
-                          </label>
-                        </div>
-                      </div> */}
                       <div className="semestre-container">
-                        <label className="semestre-label">Semestre:</label>
+                        <label className="semestre-label">Turma Atual:</label>
                         <input
                           className="semestre-input"
-                          type="number"
-                          value={aluno.dadosEditados.semestre || ''}
-                          onChange={(e) => handleChange(index, 'semestre', e.target.value)}
+                          type="text"
+                          value={aluno.dadosEditados.curso_semestre}
+                          onChange={(e) => handleChange(index, 'curso_semestre', e.target.value)}
                         />
                       </div>
                     </div>
@@ -182,8 +207,18 @@ const StudentCard = () => {
                       />
                     </div>
 
+                    <div className="nome-container">
+                      <label className="nome-label">Email Institucional:</label>
+                      <input
+                        className="nome-input"
+                        type="text"
+                        value={aluno.dadosEditados.email_institucional}
+                        onChange={(e) => handleChange(index, 'email_institucional', e.target.value)}
+                      />
+                    </div>
+
                     <div className="field-group">
-                      <div className="celular-container">
+                    <div className="celular-container">
                         <label className="celular-label">Celular:</label>
                         <input
                           type="tel"
@@ -192,25 +227,23 @@ const StudentCard = () => {
                           onChange={(e) => handleChange(index, 'celular', e.target.value)}
                         />
                       </div>
-                      <div className="nascimento-container">
-                        <label className="nascimento-label">Nascimento:</label>
+                      <div className="ra-container">
+                        <label className="ra-label">RA:</label>
                         <input
-                          type="date"
-                          className="nascimento-input"
-                          value={aluno.dadosEditados.data_nascimento}
-                          onChange={(e) => handleChange(index, 'data_nascimento', e.target.value)}
+                          className="ra-input"
+                          value={aluno.dadosEditados.ra}
+                          onChange={(e) => handleChange(index, 'ra', e.target.value)}
                         />
                       </div>
                     </div>
 
                     <div className="field-group">
-                      <div className="ingresso-container">
-                        <label className="ingresso-label">Ingresso:</label>
+                      <div className="matri-container">
+                        <label className="matri-label">Data de Matrícula:</label>
                         <input
-                          type="date"
-                          className="ingresso-input"
-                          value={aluno.dadosEditados.data_ingresso}
-                          onChange={(e) => handleChange(index, 'data_ingresso', e.target.value)}
+                          className="matri-input"
+                          value={aluno.dadosEditados.data_matricula}
+                          onChange={(e) => handleChange(index, 'data_matricula', e.target.value)}
                         />
                       </div>
                       <div className="form-actions">
@@ -244,46 +277,28 @@ const StudentCard = () => {
                       </p>
                     </div>
 
-                    <div className="detail-line cel-nasc-line">
-                      <p className="cel-detalhe">
-                        <strong>Celular:</strong> {aluno.celular || "Não informado"}
-                      </p>
-                      <p className="nasc-detalhe">
-                        <strong>Nascimento:</strong> {aluno.data_nascimento || "Não informado"}
+                    <div className="detail-line">
+                      <p className="nome-detalhe">
+                        <strong>Email:</strong> {aluno.email_institucional || "Não informado"}
                       </p>
                     </div>
 
-                    <div className="detail-line ingresso-sem-curso">
-                      <p className="ingresso-detalhe">
-                        <strong>Ingresso:</strong> {aluno.data_matricula}
+                    <div className="detail-line cel-nasc-line">
+                      <p className="cel-detalhe">
+                        <strong>Celular:</strong> {aluno.telefone || "Não informado"}
+                      </p>
+                      <p className="ra-detalhe">
+                        <strong>RA:</strong> {aluno.ra || "Não informado"}
+                      </p>
+                    </div>
+
+                    <div className="detail-line matri-sem-curso">
+                      <p className="matri-detalhe">
+                      <strong>Data de Matrícula:</strong> {aluno.data_matricula?.split(' ')[0] || "Não informado"}
                       </p>
                       <p className="sem-detalhe">
-                        <strong>Semestre:</strong> {aluno.curso_semestre}
+                        <strong>Turma Atual:</strong> {aluno.curso_semestre || "Não informado"}
                       </p>
-                      {/* <div className="btn-group" role="group">
-                        <input
-                          type="radio"
-                          className="btn-check"
-                          name={`curso-detalhe-${aluno.id_aluno}`}
-                          id={`dsm-detalhe-${aluno.id_aluno}`}
-                          checked={aluno.curso_semestre?.toLowerCase().includes('dsm')}
-                          readOnly
-                        />
-                        <label className="btn btn-color-curso" htmlFor={`dsm-detalhe-${aluno.id_aluno}`}>
-                          DSM
-                        </label>
-                        <input
-                          type="radio"
-                          className="btn-check"
-                          name={`curso-detalhe-${aluno.id_aluno}`}
-                          id={`ge-detalhe-${aluno.id_aluno}`}
-                          checked={aluno.curso_semestre?.toLowerCase().includes('ge')}
-                          readOnly
-                        />
-                        <label className="btn btn-branco-detalhes" htmlFor={`ge-detalhe-${aluno.id_aluno}`}>
-                          GE
-                        </label>
-                      </div> */}
                     </div>
                   </div>
 
@@ -313,7 +328,7 @@ const StudentCard = () => {
                     <div>
                       <div className="student-name">{aluno.nome}</div>
                       <div className="student-class">
-                        {aluno.curso_semestre} • Semestre {aluno.semestre}
+                        {aluno.curso_semestre}
                       </div>
                     </div>
                   </div>
