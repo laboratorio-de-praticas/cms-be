@@ -1,6 +1,10 @@
+import 'dotenv/config';
 import { conectar_banco } from '../../../../config/database';
 import ENUMS from '../../../../config/enums';
 import bcrypt from 'bcryptjs';
+import axios from 'axios';
+
+const AUTH_API_URL = process.env.AUTH_API_URL || 'http://localhost:3000';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -90,24 +94,26 @@ export default async function handler(req, res) {
     // Iniciar transação
     await client.query('BEGIN');
 
-    // Inserir usuário 
-    const result = await client.query(
-      `INSERT INTO "Usuarios" 
-       (nome, email_institucional, senha, tipo_usuario, status_usuario) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id`,
-      [
-        nome,
-        email_institucional,
-        senhaHash,
-        ENUMS.UsuarioTipos.INTERNO,
-        ENUMS.UsuarioStatus.PENDENTE
-      ]
+    // DADOS PARA O SERVIÇO DE AUTENTICAÇÃO
+    const userPayload = {
+      nome,
+      email_institucional,
+      senha
+      // tipo_usuario: 'Interno', // ou o valor correto
+      // status_usuario: 'Pendente' // ou o valor correto
+    };
+
+    // 1. Cria o usuário via API de autenticação
+    const response = await axios.post(`${AUTH_API_URL}/v1/users/create`, userPayload);
+    const id_usuario = response.data.id;
+
+    // 2. Atualiza o tipo_usuario para "Interno"
+    await client.query(
+      'UPDATE "Usuarios" SET tipo_usuario = $1 WHERE id = $2',
+      ['Interno', id_usuario]
     );
 
-    const id_usuario = result.rows[0].id;
-
-    // Inserir dados do aluno
+    // 3. Cria o aluno localmente, usando o id_usuario retornado
     await client.query(
       `INSERT INTO "Alunos" 
        (fk_id_usuario, ra, curso_semestre, deseja_ser_candidato) 
@@ -121,9 +127,7 @@ export default async function handler(req, res) {
       ]
     );
 
-  
     await client.query('COMMIT');
-
     res.status(201).json({
       mensagem: 'Aluno cadastrado com sucesso',
       id_usuario,
@@ -131,12 +135,13 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    // Rollback em caso de erro
     await client.query('ROLLBACK');
     console.error('Erro ao cadastrar aluno:', error);
     res.status(500).json({
       mensagem: 'Erro ao cadastrar aluno',
-      detalhes: error.message
+      detalhes: error.message,
+      stack: error.stack,
+      error: error
     });
   } finally {
     client.release();

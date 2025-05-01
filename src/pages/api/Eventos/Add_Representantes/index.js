@@ -70,7 +70,7 @@ export default async function handler(req, res) {
 
     // Gerar URL do QR Code
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const qrcode = `${baseUrl}/votacao/publica/confirmacao/id_aluno=${fk_id_aluno}/id_evento=${fk_id_evento}`;
+    const qrcode = `${baseUrl}/votacao/interna/confirmacao/${fk_id_evento}/${fk_id_aluno}`;
 
     // Inserir representante no evento
     await client.query(
